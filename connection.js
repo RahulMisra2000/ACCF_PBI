@@ -10,14 +10,15 @@ const db = {
         if (!con) {
             // Create the connection
             con = mysql.createConnection({
-                host: 'localhost',
-                user: 'root',
-                password: '123saibaba',
-                database: 'world'
+                host: process.env.host,
+                user: process.env.dbUser,
+                password: process.env.dbPassword,
+                database: process.env.dbDatabase
             });
             con.connect((err) => {
                 if (err) throw err;
                 utilities.showMessage({type: 'INFO', msg: `Database connected established`});
+                utilities.dbConnectionMade = true;
             });  
         }
         return con;

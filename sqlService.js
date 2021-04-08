@@ -60,6 +60,7 @@ const createRec = (tblName, csvLine, csvLineNum) => {
 
 
 
+
 // This will be called to update the Firestore information in the mysql record
 const updateRec1 = (tblName, data) => {
     const con = db.getConnection();

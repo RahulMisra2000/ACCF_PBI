@@ -1,28 +1,40 @@
 import crypto from 'crypto';
 
+
+// I AM KEEPING SOME STATE INFO HERE AS WELL
 const utilities = {
-    csvFileName : 'data.csv',
-    sqlTableName : 'parent',
-    firestoreCollectionName : 'parent',
+    sqlTableName : 'pbicustomer',
+    firestoreCollectionName : 'customers',
     isAlphaNumeric : (data) => {
         return /[a-z0-9]+/i.test(data);        
     },
     isNumeric: (data) => {
         return /^[0-9]+$/.test(data);        
     },    
-    sqlErrorsArray: [],
     getHash: (data) => {
         // data is a javascript object
         return crypto.createHash('sha256').update(JSON.stringify(data)).digest('hex');
     },
+    showMessage: ({type, msg, obj}) => {
+        if (process.env.showConsoleMessage == 'yes'){
+            console.log(`${Date.now()}: ${type}: ${msg}`);
+            if (obj) {
+                console.log(obj);
+            }
+        }
+    },
+
     batchTime: Date.now(),
     closeMySqlDatabaseConnection : false,
-    showMessage: ({type, msg, obj}) => {
-        console.log(`${Date.now()}: ${type}: ${msg}`);
-        if (obj) {
-            console.log(obj);
-        }
-    }
+    sqlErrorsArray: [],
+    dbConnectionMade: false,
+    dbConnectionWaitCount: 0,
+    dbConnectionWaitMaxCount: 4,
+
+    numberOfDaysBeforeTodayToGetRecordsFrom: 15,
+    lastRec: null,
+
+    allClearToGetMoreFirestoreRecords: 'yes'
 };
 
 export default utilities;

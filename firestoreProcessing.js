@@ -98,33 +98,93 @@ const _processMySqlStatus1Records = (rows) => {
     });
 };
 
-const _sqlToFirestore = () => {
-    const tblName = utilities.sqlTableName;
+// Will take records from data array and do CU in sql table
+const ProcessFirestoreRecords = (data) => {
     const con = db.getConnection();
+    const tblName = utilities.sqlTableName; 
+    
+    data.forEach((v, i, a) => {        
+        utilities.showMessage({type: 'INFO', msg: `Data in record ${v.id}`});        
+    });
+    setTimeout(() => {
+        utilities.showMessage({type: 'INFO', msg: `In 2 seconds will allow more records to be fetched from Firestore`});        
+        utilities.allClearToGetMoreFirestoreRecords = 'yes';
+    }, 2000);    
+
+};
+
+const GetFirestoreRecords = (collectionName) => {
+
+    const recordsToReadAtOneTime = 3;
+    let recsData = [];
+    let xDaysAgo = new Date()
+    xDaysAgo.setDate(xDaysAgo.getDate() - utilities.numberOfDaysBeforeTodayToGetRecordsFrom);
+
+    let coll = firestoreDB.collection(collectionName);
+    // coll = coll.where('createdAt', '>=', xDaysAgo.getTime());
+    coll = coll.where('createdAt', '>=', 1617139272729);    
+    coll = coll.limit(recordsToReadAtOneTime);
+    coll = coll.orderBy('createdAt');
+
+    //#region NOW GET THE RECORDS
+    utilities.showMessage({type: 'DEBUG', msg: `lastRec is ${utilities.lastRec}`});    
+    if (utilities.lastRec) {
+        coll = coll.startAfter(utilities.lastRec);
+    }
+    
+    utilities.allClearToGetMoreFirestoreRecords = 'no';
+    coll.get()
+    .then((querySnapshot) => {        
+        querySnapshot.forEach((doc) => {
+            recsData.push({ ...doc.data(), id: doc.id });                        
+            utilities.lastRec = querySnapshot.docs[querySnapshot.docs.length - 1];            
+        });
+        utilities.showMessage({type: 'INFO', msg: `Read ${recsData.length} records from Firestore`});    
+
+        if (recsData.length <= 0) {
+            utilities.allClearToGetMoreFirestoreRecords = 'nomoreRecs';
+        } else {
+            ProcessFirestoreRecords(recsData);        
+        }
+    })
+    .catch((err) => {
+        utilities.showMessage({type: 'INFO', msg: `Error accessing ${collectionName} from Firestore : ${err.message}`});    
+        utilities.allClearToGetMoreFirestoreRecords = 'pbm';
+    })
+    .finally(() => {            
+    });
+
+
+};
+
+const _firestoreToSql = () => {        
     
     return new Promise((resolve, reject) => {
-        setTimeout(() => {
-            utilities.showMessage({type: 'INFO', msg: `In 6 seconds will do SQL --> Firestore processing. Read Staus 1 records from table ${tblName} and will do CU in Firestore and U in SQL`});        
-        
-            con.query({
-                sql: `SELECT * FROM ${tblName} WHERE Status = ?`,
-                timeout: 10000, // 10s
-                values: [1]
-              }, function (err, rows, fields) {
-                if(!rows.length) {             
-                    _closeMySqlConnection();                  
-                    reject({msg: `No Status 1 records found in ${tblName}, so no Firestore CU activity was required`});
-                } else {
-                    _processMySqlStatus1Records(rows);                                             
-                    resolve({msg: `There were ${rows.length} sql records that needed processing`});
-                }
-              });
-        }, 6000);
-    });    
+       
+        const si = setInterval(() => {
+            if (utilities.allClearToGetMoreFirestoreRecords == 'pbm') {
+                utilities.showMessage({type: 'ERROR', msg: `Problem accessing Firestore collection ${utilities.firestoreCollectionName}`});    
+                clearInterval(si);
+                reject(`ERROR: Problem accessing Firestore collection ${utilities.firestoreCollectionName}`);
+            } else if (utilities.allClearToGetMoreFirestoreRecords == 'nomoreRecs'){
+                utilities.showMessage({type: 'INFO', msg: `No more records in Firestore collection ${utilities.firestoreCollectionName}`});    
+                clearInterval(si);
+                resolve(`DONE`);
+            } else if (utilities.allClearToGetMoreFirestoreRecords == 'yes'){
+                utilities.showMessage({type: 'INFO', msg: `Will try to get records from Firestore collection ${utilities.firestoreCollectionName}`});    
+                GetFirestoreRecords(utilities.firestoreCollectionName);
+            } else { 
+                utilities.showMessage({type: 'INFO', msg: `Waiting to get Read more records from Firestore collection ${utilities.collecfirestoreCollectionNametionName}`});    
+            }
+        }, 7000);
+
+    });
+
+    //#endregion
 };
 
 const firestoreProcessing = {
-    sqlToFirestore: _sqlToFirestore    
+    firestoreToSql: _firestoreToSql
 }
 
 export default firestoreProcessing;

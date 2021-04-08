@@ -1,3 +1,37 @@
 Using the Firebase Admin SDK from nodejs environment - https://firebase.google.com/docs/admin/setup
 
 https://github.com/RahulMisra2000/ACCF_PBI
+
+
+#LOG FILE
+CREATE TABLE `pbilog` (
+  `Id` int NOT NULL AUTO_INCREMENT,
+  `type` varchar(10) DEFAULT NULL,
+  `created` bigint DEFAULT NULL,
+  `batch` char(64) DEFAULT NULL,
+  `msg` varchar(128) DEFAULT NULL,
+  `collectionName` varchar(32) DEFAULT NULL,
+  `tableName` varchar(32) DEFAULT NULL,
+  `createdTimeStamp` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`Id`)
+) ENGINE=InnoDB AUTO_INCREMENT=182 DEFAULT CHARSET=latin1;
+
+
+
+CREATE TABLE `pbicustomer` (
+  `Id` int NOT NULL AUTO_INCREMENT,
+  `CreatedAt` bigint DEFAULT NULL,
+  `Crisis` varchar(3) NOT NULL DEFAULT '',
+  `Name` varchar(64) DEFAULT NULL,
+  `Email` varchar(64) DEFAULT NULL,
+  `Phone` varchar(20) DEFAULT NULL,
+  `Rating` varchar(20) DEFAULT NULL,
+  `Status` varchar(20) DEFAULT NULL,
+  `RecStatus` varchar(20) DEFAULT NULL,
+  `ServiceCompletion` timestamp NULL DEFAULT NULL,
+  `Uid` varchar(64) DEFAULT NULL,
+  `UidEmail` varchar(64) DEFAULT NULL,
+  `FirestoreId` varchar(60) DEFAULT NULL,
+  `CreatedAtTimeStamp` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`Id`)
+) ENGINE=InnoDB AUTO_INCREMENT=182 DEFAULT CHARSET=latin1;
