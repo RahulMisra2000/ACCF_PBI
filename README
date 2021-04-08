@@ -3,6 +3,15 @@ Using the Firebase Admin SDK from nodejs environment - https://firebase.google.c
 https://github.com/RahulMisra2000/ACCF_PBI
 
 
+
+.env has
+ADMINCRED='<The object from Google Console>'
+host='<data>'
+dbDatabase='<data>'
+dbUser='<data>'
+dbPassword='<data>'
+showConsoleMessage='<data>'
+
 #LOG FILE
 CREATE TABLE `pbilog` (
   `Id` int NOT NULL AUTO_INCREMENT,
