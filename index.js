@@ -3,7 +3,6 @@
 import './specialEnv.js';
 
 import db from './connection.js';
-import csvService from './csvService.js';
 import utilities from './utilities.js';
 import firestoreProcessing from './firestoreProcessing.js';
 
@@ -27,6 +26,8 @@ const driver = () => {
 
 //#region  MAIN
 // Housekeeping
+
+utilities.writeToLog({type: 'INFO', msg: `Running ${process.argv}`, collectionName: utilities.firestoreCollectionName });
 utilities.showMessage({type:'INFO', msg:'Waiting for Sql database connection ...'});
 db.getConnection();  // It takes a while to get the connection so do this as the very first thing
 
@@ -53,7 +54,7 @@ const _interval = setInterval(() => {
     clearAllIntevals();
     utilities.showMessage({type:'INFO', msg:'PROGRAM ENDING NOW'});
   }
-}, 15000);
+}, 5000);
 
 
 const clearAllIntevals = () => {

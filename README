@@ -15,13 +15,12 @@ showConsoleMessage='<data>'
 #LOG FILE
 CREATE TABLE `pbilog` (
   `Id` int NOT NULL AUTO_INCREMENT,
-  `type` varchar(10) DEFAULT NULL,
-  `created` bigint DEFAULT NULL,
-  `batch` char(64) DEFAULT NULL,
-  `msg` varchar(128) DEFAULT NULL,
-  `collectionName` varchar(32) DEFAULT NULL,
-  `tableName` varchar(32) DEFAULT NULL,
-  `createdTimeStamp` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `Type` varchar(10) DEFAULT NULL,
+  `Batch` varchar(64) DEFAULT NULL,
+  `Msg` varchar(128) DEFAULT NULL,
+  `CollectionName` varchar(32) DEFAULT NULL,
+  `TableName` varchar(32) DEFAULT NULL,
+  `CreatedTimeStamp` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`Id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=182 DEFAULT CHARSET=latin1;
 

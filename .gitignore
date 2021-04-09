@@ -1,3 +1,5 @@
 node_modules
 rm2000app-firebase-adminsdk-93cvg-7977f045fd.json
 .env
+cert.pem
+key.pem

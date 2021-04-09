@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-
+import sqlService from './sqlService.js';
 
 // I AM KEEPING SOME STATE INFO HERE AS WELL
 const utilities = {
@@ -22,6 +22,9 @@ const utilities = {
                 console.log(obj);
             }
         }
+    },
+    writeToLog: (obj) => {
+        sqlService.createLogRec(obj);
     },
 
     batchTime: Date.now(),

@@ -14,103 +14,29 @@ admin.initializeApp({
 
 const firestoreDB = admin.firestore();
 
-const _closeMySqlConnection = () => {
-    setTimeout(() => {        
-        utilities.showMessage({type: 'INFO', msg: 'Closing connection in 15 seconds'});
-        utilities.closeMySqlDatabaseConnection = true;
-    }, 15000);
-};
-
-const _processMySqlStatus1Records = (rows) => {    
-    const rowsToProcess = rows.length;
+// Will take records from data array and do CU in sql table
+const ProcessFirestoreRecords = (data) => {
     let rowsProcessed = 0;
-    
+    let rowsToProcess = data.length;
+
     // Helper
     const _interval = setInterval(() => {
         if (rowsProcessed >= rowsToProcess) {
-            utilities.showMessage({type: 'INFO', msg: `${rowsProcessed} / ${rowsToProcess} mysql records have been processed. So now closing mysql database connection`});
-            _closeMySqlConnection();
+            utilities.showMessage({type: 'INFO', msg: `${rowsProcessed} / ${rowsToProcess} records have been processed. So, ok to request next batch`});
+            utilities.allClearToGetMoreFirestoreRecords = 'yes';
             clearInterval(_interval);
         }        
-    }, 6000);
+    }, 1000);
 
-
-    // MAIN LOOP
-    utilities.showMessage({type: 'INFO', msg: `Starting Main SQL Loop for ${rows.length} records`}); 
-    rows.forEach((v, i, a) => {               
-        if (v['FirestoreId']) {         // this record was once uploaded to Firestore, that is why it has a value in FirestoreID
-            // so let's try to update it
-            utilities.showMessage({type: 'INFO', msg: `FirestoreID ${v['FirestoreId']} exists in SQL record so, will try to update Firestore Record with Name and City`});        
-
-            firestoreDB.collection(utilities.firestoreCollectionName).doc(v['FirestoreId'])
-            .update({
-                Name: v['Name'],
-                City: v['City']
-            })
-            .then(() => {                
-                utilities.showMessage({type: 'INFO', msg: `Firestore document successfully updated`});        
-                
-                // Update the mysql record
-                utilities.showMessage({type: 'INFO', msg: `Will now update the SQL record`});        
-                sqlService.updateRec1(utilities.sqlTableName, {
-                    Id: v['Id'],
-                    Status: 99,
-                    FirestoreProcessCounter: 2,
-                    FirestoreId: v['FirestoreId']                                 
-                });
-            })
-            .catch((error) => {
-                // The document probably doesn't exist.
-                utilities.showMessage({type: 'ERROR', msg: `Error updating Firestore doc or updating SQL record`, obj:error});        
-            })
-            .finally(() =>{
-                rowsProcessed++;
-            });
-        } else {
-            // Add to Firestore
-            utilities.showMessage({type: 'INFO', msg: `No FirestoreID in SQL record so, will try to add Firestore Record`});        
-            firestoreDB.collection(utilities.firestoreCollectionName)
-            .add({
-                Name: v['Name'],
-                City: v['City'],
-                ProcareId: v['ProcareId'],
-                MysqlId: v['Id']
-            })
-            .then((docRef) => {
-                utilities.showMessage({type: 'INFO', msg: `Firestore document successfully added, Id is ${docRef.id}`});        
-
-                // Update the mysql record
-                utilities.showMessage({type: 'INFO', msg: `Will now update the SQL record`});        
-                sqlService.updateRec1(utilities.sqlTableName, {
-                    Id: v['Id'],
-                    Status: 99,
-                    FirestoreProcessCounter: 1,
-                    FirestoreId: docRef.id                    
-                });
-            })
-            .catch((error) => {
-                utilities.showMessage({type: 'ERROR', msg: `Error adding Firestore doc or updating SQL record`, obj:error});        
-            })
-            .finally(() => {
-                rowsProcessed++;
-            });
+    data.forEach(async (v, i, a) => {        
+        utilities.showMessage({type: 'INFO', msg: `Data in record ${v.id}`});        
+        try {
+            await sqlService.CUDfirestoreRecIntoMySQL(utilities.sqlTableName, v);
+        } catch (e) {
+        } finally {            
+            rowsProcessed++;
         }
     });
-};
-
-// Will take records from data array and do CU in sql table
-const ProcessFirestoreRecords = (data) => {
-    const con = db.getConnection();
-    const tblName = utilities.sqlTableName; 
-    
-    data.forEach((v, i, a) => {        
-        utilities.showMessage({type: 'INFO', msg: `Data in record ${v.id}`});        
-    });
-    setTimeout(() => {
-        utilities.showMessage({type: 'INFO', msg: `In 2 seconds will allow more records to be fetched from Firestore`});        
-        utilities.allClearToGetMoreFirestoreRecords = 'yes';
-    }, 2000);    
-
 };
 
 const GetFirestoreRecords = (collectionName) => {
@@ -148,7 +74,7 @@ const GetFirestoreRecords = (collectionName) => {
         }
     })
     .catch((err) => {
-        utilities.showMessage({type: 'INFO', msg: `Error accessing ${collectionName} from Firestore : ${err.message}`});    
+        utilities.showMessage({type: 'ERROR', msg: `Error accessing ${collectionName} from Firestore : ${err.message}`});    
         utilities.allClearToGetMoreFirestoreRecords = 'pbm';
     })
     .finally(() => {            
