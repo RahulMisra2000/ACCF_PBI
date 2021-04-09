@@ -16,17 +16,23 @@ const db = {
                 database: process.env.dbDatabase
             });
             con.connect((err) => {
-                if (err) throw err;
-                utilities.showMessage({type: 'INFO', msg: `Database connected established`});
-                utilities.dbConnectionMade = true;
+                // This is an async callback by mysql software
+                if (!err) {
+                    utilities.showMessage({type: 'INFO', msg: `(((Database connected established)))`});
+                    utilities.dbConnectionMade = true;
+                }
+                // We are not ignoring the error. We are working off utilities.dbConnectionMade and so that is the same thing
             });  
         }
         return con;
     },
     closeConnection : () => {
-        if (con) {
-            con.end();
+        if (con) {            
             utilities.showMessage({type: 'INFO', msg: `Database connected closed`});
+            setTimeout(() => {
+                // The timeout gives other messages elsewhere in the application a possible chance to be written to the log table
+                con.end();
+            }, 1000);            
         }
     }
 }

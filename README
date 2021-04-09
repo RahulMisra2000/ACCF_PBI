@@ -1,4 +1,6 @@
-Using the Firebase Admin SDK from nodejs environment - https://firebase.google.com/docs/admin/setup
+### This project has two entry points. See package.json for commands to start them
+
+### Using the Firebase Admin SDK from nodejs environment - https://firebase.google.com/docs/admin/setup
 
 https://github.com/RahulMisra2000/ACCF_PBI
 
@@ -16,13 +18,16 @@ showConsoleMessage='<data>'
 CREATE TABLE `pbilog` (
   `Id` int NOT NULL AUTO_INCREMENT,
   `Type` varchar(10) DEFAULT NULL,
+  `CreatedAt` varchar(45) DEFAULT NULL,
   `Batch` varchar(64) DEFAULT NULL,
   `Msg` varchar(128) DEFAULT NULL,
   `CollectionName` varchar(32) DEFAULT NULL,
   `TableName` varchar(32) DEFAULT NULL,
+  `Other` varchar(128) DEFAULT NULL,
   `CreatedTimeStamp` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`Id`)
-) ENGINE=InnoDB AUTO_INCREMENT=182 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=192 DEFAULT CHARSET=latin1;
+
 
 
 

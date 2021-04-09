@@ -163,21 +163,25 @@ const readRecByFirestoreId = (tblName, id) => {
 };
 
 
-const createLogRec = ( {type, msg, collectionName, tableName}) => {
+const createLogRec = ( {type, msg, collectionName, tableName, other}) => {
     const con = db.getConnection();
     
     const rec = { 
                     Type: type,
+                    CreatedAt: new Date(Date.now()),
                     Batch: new Date(utilities.batchTime),
                     Msg: msg,
                     CollectionName: collectionName,
-                    TableName: tableName
+                    TableName: tableName,
+                    Other: other,
+                    Pid: process.pid
                 };
     
     con.query(`INSERT INTO pbilog SET ?`, rec, (err, res) => {});       
 };
 
 const endConnection = () => {
+    utilities.writeToLog({info:'INFO', msg:'Closing Connection Now', collectionName: utilities.firestoreCollectionName, tableName: utilities.sqlTableName});
     db.closeConnection();
 };
 

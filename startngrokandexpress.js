@@ -1,109 +1,197 @@
-var fs = require("fs");
-var http = require("http");
-var https = require("https");
-const path = require('path');
-var express = require("express");
-const { SIGTERM } = require("constants");
+// This must be the first one to get dotenv to work
+// It does only side-effect
+import './specialEnv.js';
+
+import fs from 'fs';
+import http from 'http';
+import https from 'https';
+import express from 'express';
+import path from 'path';
+import child_process from 'child_process';
+
+import db from './connection.js';
+import utilities from './utilities.js';
+import downloadPBIData from './DownloadPBIdata.js';
+import { SIGTERM } from 'constants';
 
 
-// TODO 
-// This should write to a sql table called RUNLOG
-// the name column should be the name of the program
-// 
+//#region MODULE-LEVEL VARIABLES
+// Defined outside all functions
+let connectionMadeInterval, connectionCloseInterval;
+let downloadDataProcessingInProgress = false;
 
+let app = express();
+let httpServer = http.createServer(app);
 
-const dontShowScreenOutput = false;
+// This program either needs to be run from the location where it will be saved on the hard drive
+let privateKey = fs.readFileSync(path.join(path.resolve('./'), '/key.pem'), "utf8");
+let certificate = fs.readFileSync(path.join(path.resolve('./'), '/cert.pem'), "utf8");
+let credentials = { key: privateKey, cert: certificate };
 
-const showMessage = (msg, obj) => {
-  if (dontShowScreenOutput) { 
-    return; 
-  }
+let httpsServer = https.createServer(credentials, app);
+//#endregion
 
-  if (msg) {
-    console.log(msg);
-  }
-  if (obj) {
-    console.log(obj);
-  }
-};
-
-showMessage('FIRST LINE');
-
+//#region FUNCTONS
 const shutdownServers = () => {
   httpServer?.close(() => {
-    showMessage('http server closed', null);
+    utilities.showMessage({type: '(interval)', msg: `HTTP server closed`});
   });
 
   httpsServer?.close(() => {
-    showMessage('https server closed', null);
+    utilities.showMessage({type: '(interval)', msg: `HTTPS server closed`});
   });
+
+  utilities.closeMySqlDatabaseConnection = true;
 };
 
 process.on("uncaughtException", (err) => {
+  utilities.showMessage({type: '(interval)', msg: `${err.message.substring(0,120)}`, other: `uncaughtException`});
   shutdownServers();
-  showMessage("uncaughtException", err);
   }
 );
 process.on("unhandledRejection", (err) => {
+  utilities.showMessage({type: '(interval)', msg: `${err.message.substring(0,120)}`, other: `unhandledRejection`});
   shutdownServers();
-  showMessage("unhandledRejection", err);
 });
 
 process.on('SIGTERM', () => {
-  showMessage('Received sigterm');
+  utilities.showMessage({type: '(interval)', msg: `Received SIGTERM`});
   shutdownServers();
 })
 
-var app = express();
-var httpServer = http.createServer(app);
 
-// This was created using openssl (under Git for Windows installation) using instructions in the first part of
-// https://nodejs.org/en/knowledge/HTTP/servers/how-to-create-a-HTTPS-server/
+// Check every 6 seconds if a Sql connection was made
+const SeeIfConnectionWasMade = (startProgram) => {
+  connectionMadeInterval = setInterval(() => {  
+    if (utilities.dbConnectionMade) {      
+      clearInterval(connectionMadeInterval);      
+      startProgram();
+    }
+    utilities.dbConnectionWaitCount++;
+    utilities.showMessage({type: '(interval)', msg: `Waiting for Sql DB connection ${utilities.dbConnectionWaitCount} of ${utilities.dbConnectionWaitMaxCount}`});
+    if (utilities.dbConnectionWaitCount >= utilities.dbConnectionWaitMaxCount) {
+      clearAllIntevals();
+      utilities.showMessage({type: '(interval)', msg: `Could not connect to Sql DB in ${utilities.dbConnectionWaitCount * 4} seconds`});
+      process.exit(1);
+    }
+  }, 4000);  
+};
 
+// Check if we need to close the Sql database connection
+const checkIfConnectionNeedsToBeClosed = () => {
+  connectionCloseInterval = setInterval(() => {
+    utilities.showMessage({type:'(interval)', msg:'Checking if MySql database connection needs to be closed ...'});
+    if (utilities.closeMySqlDatabaseConnection) {
+      db.closeConnection();          
+      utilities.showMessage({type:'INFO', msg:'PROGRAM ENDING NOW'});
+      clearAllIntevals(); // because the node app won't close if there are uncleared intervals
+    }
+  }, 10000);  
+};
 
-var privateKey = fs.readFileSync(path.join(__dirname, '/key.pem'), "utf8");
-var certificate = fs.readFileSync(path.join(__dirname, '/cert.pem'), "utf8");
-var credentials = { key: privateKey, cert: certificate };
+const clearAllIntevals = () => {
+  if (connectionMadeInterval) {
+    clearInterval(connectionMadeInterval);
+  }
 
-var httpsServer = https.createServer(credentials, app);
+  if (connectionCloseInterval){
+    clearInterval(connectionCloseInterval);
+  }
+};
 
-httpServer.listen(8080, () => {
-  showMessage("Web Server (http) started at port: 8080");
-});
-httpsServer.listen(8443, () => {
-  showMessage("Web Server (httpS) started at port: 8443");
-});
+// 
+const startProgram = () => {
+  utilities.showMessage({type: 'INFO', msg: `Starting ${process.argv[1]}`, other:`PID ${process.pid} - PPID ${process.ppid}`});
 
-
-app.get('/', function (req, res) {  
-  showMessage(`My Process Id is ${process.pid}`);
-  res.send('hi');
-});
-
-app.get('/end', function (req, res) {
-  shutdownServers();
-  res.send('ending now');
-});
-
-app.get("/reboot", (req, res)=>{
-  setTimeout(function () {
-      // When NodeJS exits
-      process.on("exit", function () {
-          shutdownServers();
-          require("child_process").spawn(process.argv.shift(), process.argv, {
-              cwd: process.cwd(),
-              detached : true,
-              stdio: "inherit"
-          });
+  app.get('/', function (req, res) {      
+    res.send(`Hi, My Process Id is ${process.pid}. Data Download in Progress (Flag): ${downloadDataProcessingInProgress}`);
+  });
+  
+  // This route has no real value .. just academic to see if state is saved across invocations
+  app.get('/end/:pid', function (req, res) {
+    
+    if (req.params.pid) {
+      process.kill(+req.params.pid, SIGTERM);
+      utilities.showMessage({type: 'INFO', msg: `Just Killed PID: ${req.params.pid}`});
+      res.send(`Just killed PID: ${req.params.pid}`);
+    }
+    
+    if (!downloadDataProcessingInProgress) {
+      downloadDataProcessingInProgress = true;
+      shutdownServers();
+      res.send('Shutting down the program');
+    }
+    
+    if (downloadDataProcessingInProgress) {
+      res.send('PBI data download from Firestore into SQL is already in progress. Please wait ...');
+    }
+  });
+  
+  app.get('/pbi', function (req, res) {    
+    if (!downloadDataProcessingInProgress) {
+      downloadDataProcessingInProgress = true;
+      
+      downloadPBIData()
+      .then((results) => {    
+        utilities.showMessage({type:'INFO', msg:`${results}`});
+      })
+      .catch((e) => {
+        utilities.showMessage({type:'ERROR', msg:'${e}'});
+      })
+      .finally(() => {
+        utilities.closeMySqlDatabaseConnection = true;
+        downloadDataProcessingInProgress = false;
       });
-      process.exit();
-  }, 5000);
-})
 
+      res.send('Will now download PBI data from Firestore into SQL');
+    }
 
-/*
-setTimeout(() => {
-  showMessage('sigterm now');
-  process.kill(process.pid, 'SIGTERM');
-}, 6000);
+    if (downloadDataProcessingInProgress) {
+      res.send('PBI data download from Firestore into SQL is already in progress. Please wait ...');
+    }
+  });
+  
+  app.get("/reboot", (req, res)=>{
+    
+    if (!downloadDataProcessingInProgress) {
+      downloadDataProcessingInProgress = true;
+    
+      setTimeout(function () {
+          // When NodeJS exits
+          process.on("exit", function () {
+              shutdownServers();
+              child_process.spawn(process.argv.shift(), process.argv, {
+                  cwd: process.cwd(),
+                  detached : true,
+                  stdio: "inherit"
+              });
+          });
+          process.exit();
+      }, 1000);
+    }
+
+    if (downloadDataProcessingInProgress) {
+      res.send('PBI data download from Firestore into SQL is already in progress. Please wait to reboot program ...');
+    }
+  })
+  
+  httpServer.listen(8080, () => {
+    utilities.showMessage({type: 'INFO', msg: `Web Server (http) started at port: 8080`, other:`PID ${process.pid} - PPID ${process.ppid}`});
+  });
+  httpsServer.listen(8443, () => {
+    utilities.showMessage({type: 'INFO', msg: `Web Server (https) started at port: 8443`, other:`PID ${process.pid} - PPID ${process.ppid}`});
+  });  
+};
+//#endregion
+
+//#region  MAIN
+/* Execution starts from here because these lines of code are not in any function.
+   These are executed during the import phase
 */
+// It takes a while to make sql connection, so do this as the very first thing
+db.getConnection();  
+
+SeeIfConnectionWasMade(startProgram); // setInterval
+checkIfConnectionNeedsToBeClosed();   // setInterval
+
+//#endregion

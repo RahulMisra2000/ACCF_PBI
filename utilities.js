@@ -15,11 +15,18 @@ const utilities = {
         // data is a javascript object
         return crypto.createHash('sha256').update(JSON.stringify(data)).digest('hex');
     },
-    showMessage: ({type, msg, obj}) => {
+    showMessage: ({type, msg, obj, other}) => {
         if (process.env.showConsoleMessage == 'yes'){
             console.log(`${Date.now()}: ${type}: ${msg}`);
             if (obj) {
                 console.log(obj);
+            }
+        }        
+        if (process.env.writeAllMessagesToLogTable == 'yes'){
+            utilities.writeToLog({type, msg, collectionName: utilities.firestoreCollectionName, tableName: utilities.sqlTableName, other});
+        } else if (process.env.writeOnlyErrorTypeToLogTable == 'yes'){            
+            if (type == 'ERROR') {
+                utilities.writeToLog({type, msg, collectionName: utilities.firestoreCollectionName, tableName: utilities.sqlTableName, other});
             }
         }
     },
@@ -32,7 +39,7 @@ const utilities = {
     sqlErrorsArray: [],
     dbConnectionMade: false,
     dbConnectionWaitCount: 0,
-    dbConnectionWaitMaxCount: 4,
+    dbConnectionWaitMaxCount: 5,
 
     numberOfDaysBeforeTodayToGetRecordsFrom: 15,
     lastRec: null,

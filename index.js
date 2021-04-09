@@ -4,12 +4,57 @@ import './specialEnv.js';
 
 import db from './connection.js';
 import utilities from './utilities.js';
-import firestoreProcessing from './firestoreProcessing.js';
+import downloadPBIData from './DownloadPBIdata.js';
 
-//#region Here only after a sql db connection was made
-const driver = () => {
-  
-  firestoreProcessing.firestoreToSql()
+//#region MODULE-LEVEL VARIABLES
+// Defined outside all functions
+let connectionMadeInterval, connectionCloseInterval;
+//#endregion
+
+//#region FUNCTONS
+// Check every 6 seconds if a Sql connection was made
+const SeeIfConnectionWasMade = (startProgram) => {
+  connectionMadeInterval = setInterval(() => {  
+    if (utilities.dbConnectionMade) {
+      utilities.showMessage({type:'INFO', msg:'Starting Program'});
+      clearInterval(connectionMadeInterval);      
+      startProgram();
+    }
+    utilities.dbConnectionWaitCount++;
+    utilities.showMessage({type: '(interval)', msg: `Waiting for Sql DB connection ${utilities.dbConnectionWaitCount} of ${utilities.dbConnectionWaitMaxCount}`});
+    if (utilities.dbConnectionWaitCount >= utilities.dbConnectionWaitMaxCount) {
+      clearAllIntevals();
+      utilities.showMessage({type: '(interval)', msg: `Could not connect to Sql DB in ${utilities.dbConnectionWaitCount * 4} seconds`});
+      process.exit(1);
+    }
+  }, 4000);  
+};
+
+// Check if we need to close the Sql database connection
+const checkIfConnectionNeedsToBeClosed = () => {
+  connectionCloseInterval = setInterval(() => {
+    utilities.showMessage({type:'(interval)', msg:'Checking if MySql database connection needs to be closed ...'});
+    if (utilities.closeMySqlDatabaseConnection) {
+      db.closeConnection();          
+      utilities.showMessage({type:'INFO', msg:'PROGRAM ENDING NOW'});
+      clearAllIntevals(); // because the node app won't close if there are uncleared intervals
+    }
+  }, 10000);  
+};
+
+const clearAllIntevals = () => {
+  if (connectionMadeInterval) {
+    clearInterval(connectionMadeInterval);
+  }
+
+  if (connectionCloseInterval){
+    clearInterval(connectionCloseInterval);
+  }
+};
+
+// 
+const startProgram = () => { 
+  downloadPBIData()
   .then((results) => {    
     utilities.showMessage({type:'INFO', msg:`${results}`});
   })
@@ -18,52 +63,18 @@ const driver = () => {
   })
   .finally(() => {
     utilities.closeMySqlDatabaseConnection = true;
-  });
-
+  });;
 };
 //#endregion
 
-
 //#region  MAIN
-// Housekeeping
+/* Execution starts from here because these lines of code are not in any function.
+   These are executed during the import phase
+*/
 
-utilities.writeToLog({type: 'INFO', msg: `Running ${process.argv}`, collectionName: utilities.firestoreCollectionName });
-utilities.showMessage({type:'INFO', msg:'Waiting for Sql database connection ...'});
-db.getConnection();  // It takes a while to get the connection so do this as the very first thing
+// It takes a while to make sql connection, so do this as the very first thing
+db.getConnection();  
 
-// Check every 6 seconds if a Sql db connection was made
-const dbCheckInterval = setInterval(() => {  
-  if (utilities.dbConnectionMade) {
-    utilities.showMessage({type:'INFO', msg:'Starting Driver'});
-    clearInterval(dbCheckInterval);
-    driver();
-  }
-  utilities.dbConnectionWaitCount++;
-  if (utilities.dbConnectionWaitCount > utilities.dbConnectionWaitMaxCount) {
-    clearAllIntevals();
-    utilities.showMessage(`ERROR: Could not connect to Sql database in ${utilities.dbConnectionWaitCount * 6} seconds`);
-    process.exit(1);
-  }
-}, 6000);
-
-// Check if we need to close the Sql database connection
-const _interval = setInterval(() => {
-  utilities.showMessage({type:'INFO', msg:'Checking if MySql database connection needs to be closed'});
-  if (utilities.closeMySqlDatabaseConnection) {
-    db.closeConnection();    
-    clearAllIntevals();
-    utilities.showMessage({type:'INFO', msg:'PROGRAM ENDING NOW'});
-  }
-}, 5000);
-
-
-const clearAllIntevals = () => {
-  if (_interval) {
-    clearInterval(_interval);
-  }
-
-  if (dbCheckInterval){
-    clearInterval(dbCheckInterval);
-  }
-};
+SeeIfConnectionWasMade(startProgram); // setInterval
+checkIfConnectionNeedsToBeClosed();   // setInterval
 //#endregion
