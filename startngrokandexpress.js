@@ -13,6 +13,7 @@ import db from './connection.js';
 import utilities from './utilities.js';
 import downloadPBIData from './DownloadPBIdata.js';
 import { SIGTERM } from 'constants';
+import state from './state.js';
 
 
 //#region MODULE-LEVEL VARIABLES
@@ -104,29 +105,45 @@ const startProgram = () => {
   utilities.showMessage({type: 'INFO', msg: `Starting ${process.argv[1]}`, other:`PID ${process.pid} - PPID ${process.ppid}`});
 
   app.get('/', function (req, res) {      
-    res.send(`Hi, My Process Id is ${process.pid}. Data Download in Progress (Flag): ${downloadDataProcessingInProgress}`);
+    return res.send(`Hi, My Process Id is ${process.pid}. Data Download in Progress (Flag): ${downloadDataProcessingInProgress}`);    
   });
   
+
+
   // This route has no real value .. just academic to see if state is saved across invocations
   app.get('/end/:pid', function (req, res) {
     
     if (req.params.pid) {
       process.kill(+req.params.pid, SIGTERM);
       utilities.showMessage({type: 'INFO', msg: `Just Killed PID: ${req.params.pid}`});
-      res.send(`Just killed PID: ${req.params.pid}`);
+      return res.send(`Just killed PID: ${req.params.pid}`);
     }
     
     if (!downloadDataProcessingInProgress) {
       downloadDataProcessingInProgress = true;
       shutdownServers();
-      res.send('Shutting down the program');
+      return res.send('Shutting down the program');
     }
     
     if (downloadDataProcessingInProgress) {
-      res.send('PBI data download from Firestore into SQL is already in progress. Please wait ...');
+      return res.send('PBI data download from Firestore into SQL is already in progress. Please wait ...');
     }
   });
   
+  app.get('/end', function (req, res) {
+    
+    if (!downloadDataProcessingInProgress) {
+      downloadDataProcessingInProgress = true;
+      shutdownServers();
+      return res.send('Shutting down the program');
+    }
+    
+    if (downloadDataProcessingInProgress) {
+      return res.send('PBI data download from Firestore into SQL is already in progress. Please wait ...');
+    }
+  });
+  
+
   app.get('/pbi', function (req, res) {    
     if (!downloadDataProcessingInProgress) {
       downloadDataProcessingInProgress = true;
@@ -143,11 +160,11 @@ const startProgram = () => {
         downloadDataProcessingInProgress = false;
       });
 
-      res.send('Will now download PBI data from Firestore into SQL');
+      return res.send('Will now download PBI data from Firestore into SQL');      
     }
 
     if (downloadDataProcessingInProgress) {
-      res.send('PBI data download from Firestore into SQL is already in progress. Please wait ...');
+      return res.send('PBI data download from Firestore into SQL is already in progress. Please wait ...');
     }
   });
   
@@ -171,7 +188,7 @@ const startProgram = () => {
     }
 
     if (downloadDataProcessingInProgress) {
-      res.send('PBI data download from Firestore into SQL is already in progress. Please wait to reboot program ...');
+      return res.send('PBI data download from Firestore into SQL is already in progress. Please wait to reboot program ...');
     }
   })
   
