@@ -6,6 +6,7 @@ const createLogRec = ( {type, msg, collectionName, tableName, other}) => {
     
     return new Promise((resolve, reject) => {
         const rec = { 
+                        Subsytem: 'Procare ETL',
                         Type: type,
                         CreatedAt: new Date(),
                         Batch: new Date(state.batchTime),
