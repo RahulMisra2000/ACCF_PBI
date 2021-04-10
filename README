@@ -1,4 +1,8 @@
 ### This project has two entry points. See package.json for commands to start them
+The startngrokandexpress is experimental. Just gives me a basic ability to download data from Firestore into MySQL.
+There are some routes in the express that are just experimental and not fully functional.
+The only route that seems to work now is when you call /pbi just once -- it downloads data from Firestore into MySQL
+It rights a lot of data to pbilog file... that needs to be addressed
 
 ### Using the Firebase Admin SDK from nodejs environment - https://firebase.google.com/docs/admin/setup
 
@@ -13,6 +17,8 @@ dbDatabase='<data>'
 dbUser='<data>'
 dbPassword='<data>'
 showConsoleMessage='<data>'
+writeAllMessagesToLogTable='<data>'
+writeOnlyErrorTypeToLogTable='<data>'
 
 #LOG FILE
 CREATE TABLE `pbilog` (

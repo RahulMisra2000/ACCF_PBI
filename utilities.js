@@ -44,7 +44,12 @@ const utilities = {
     numberOfDaysBeforeTodayToGetRecordsFrom: 15,
     lastRec: null,
 
-    allClearToGetMoreFirestoreRecords: 'yes'
+    allClearToGetMoreFirestoreRecords: 'yes',
+
+    totalRecsReadFromFirestore: 0,
+    totalCustomersWrittenInMySql: 0,
+    totalChildrenWrittenInMySql: 0,
+    totalSSWrittenInMySql: 0
 };
 
 export default utilities;

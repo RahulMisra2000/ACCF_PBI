@@ -18,6 +18,7 @@ const firestoreDB = admin.firestore();
 const ProcessFirestoreRecords = (data) => {
     let rowsProcessed = 0;
     let rowsToProcess = data.length;
+    utilities.totalRecsReadFromFirestore+= data.length;            
 
     // Helper
     const _interval = setInterval(() => {
@@ -34,7 +35,7 @@ const ProcessFirestoreRecords = (data) => {
             await sqlService.CUDfirestoreRecIntoMySQL(utilities.sqlTableName, v);
         } catch (e) {
         } finally {            
-            rowsProcessed++;
+            rowsProcessed++;            
         }
     });
 };

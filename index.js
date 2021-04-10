@@ -5,6 +5,7 @@ import './specialEnv.js';
 import db from './connection.js';
 import utilities from './utilities.js';
 import downloadPBIData from './DownloadPBIdata.js';
+import sqlService from './sqlService.js';
 
 //#region MODULE-LEVEL VARIABLES
 // Defined outside all functions
@@ -30,14 +31,31 @@ const SeeIfConnectionWasMade = (startProgram) => {
   }, 4000);  
 };
 
+const finalHouseKeeping = () => {
+  return new Promise((res, rej) => {
+    sqlService.writeSummary()
+    .finally(() => {
+      res();
+    });
+  });
+
+};
+
 // Check if we need to close the Sql database connection
 const checkIfConnectionNeedsToBeClosed = () => {
-  connectionCloseInterval = setInterval(() => {
+  connectionCloseInterval = setInterval(async () => {
     utilities.showMessage({type:'(interval)', msg:'Checking if MySql database connection needs to be closed ...'});
     if (utilities.closeMySqlDatabaseConnection) {
-      db.closeConnection();          
-      utilities.showMessage({type:'INFO', msg:'PROGRAM ENDING NOW'});
-      clearAllIntevals(); // because the node app won't close if there are uncleared intervals
+      try {
+        // Final housekeeping
+        await finalHouseKeeping();
+      } catch(e) {
+
+      } finally {
+        db.closeConnection();          
+        utilities.showMessage({type:'INFO', msg:'PROGRAM ENDING NOW'});
+        clearAllIntevals(); // because the node app won't close if there are uncleared intervals
+      }      
     }
   }, 10000);  
 };

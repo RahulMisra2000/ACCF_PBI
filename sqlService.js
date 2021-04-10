@@ -19,7 +19,7 @@ const CUDfirestoreRecIntoMySQL = (tblName, firestoreRec) => {
             }
         } catch (e) {
             try {
-                await createRec(tblName, firestoreRec);
+                await createRec(tblName, firestoreRec);                
                 resolve();
             } catch (e) {
                 reject();
@@ -52,14 +52,18 @@ const createRec = (tblName, firestoreRec) => {
                 utilities.showMessage({type: 'ERROR', msg: `Processing firestore rec id: ${firestoreRec.id}`, obj:err});            
                 reject();
             } else {
-                utilities.showMessage({type: 'INFO', msg: `Successfully created a mysql record for Firestore Id ${firestoreRec['id']}`});                
-                // Add children and ss records to the children and ss tables
-                console.log(firestoreRec.children.length);
+                utilities.showMessage({type: 'INFO', msg: `Successfully created a mysql record in (${tblName}) for Firestore Id ${firestoreRec.id}`});                
+                utilities.totalCustomersWrittenInMySql++;
+
+                // Add children and ss data which are arrays in the firestore record, to the children and ss tables in SQL
                 if (firestoreRec.children.length) {
-                    await createChildren(firestoreRec.id, firestoreRec.children);
+                    await createChildrenTable(firestoreRec.id, firestoreRec.children);
                 }                
-                // TODO 
+                
                 // Add ss to another table
+                if (firestoreRec.ss.length) {
+                    await createPbisTable(firestoreRec.id, firestoreRec.ss);
+                }
                 resolve();
             }
         });       
@@ -67,10 +71,8 @@ const createRec = (tblName, firestoreRec) => {
 };
 
 
-const createChildren = (id, children) => {
-    console.log(children);
+const createChildrenTable = (id, children) => {
     const con = db.getConnection();
-
 
     return new Promise(async (resolve, reject) => {
         children.forEach((v, i, a) => {
@@ -82,7 +84,14 @@ const createChildren = (id, children) => {
                 CustomerId: id,
                 BatchTime: new Date(utilities.batchTime)
             };
-            con.query(`INSERT INTO pbichildren SET ?`, rec, (err, res) => { });
+            con.query(`INSERT INTO pbichildren SET ?`, rec, (err, res) => {
+                if (err) {                                
+                    utilities.showMessage({type: 'ERROR', msg: `Creating rec in pbichildren while processing firestore rec id: ${id}`, obj:err, other: err.message});                 
+                } else {
+                    utilities.showMessage({type: 'INFO', msg: `Successfully created a mysql record in (pchildren) for Firestore Id ${id}`});  
+                    utilities.totalChildrenWrittenInMySql++; 
+                }
+             });
         });
 
         setTimeout(() => {
@@ -90,6 +99,37 @@ const createChildren = (id, children) => {
         }, 1000);        
     });
 };
+
+const createPbisTable = (id, ss) => {
+    const con = db.getConnection();
+
+    return new Promise(async (resolve, reject) => {
+        ss.forEach((v, i, a) => {
+            const rec = {
+                Date: v.date,
+                Strength: v.strength,
+                Stressor: v.stressor,                
+                CustomerId: id,
+                BatchTime: new Date(utilities.batchTime)
+            };
+            con.query(`INSERT INTO pbiss SET ?`, rec, (err, res) => {
+                if (err) {                                
+                    utilities.showMessage({type: 'ERROR', msg: `Creating rec in pbiss while processing firestore rec id: ${id}`, obj:err, other: err.message});                 
+                } else {
+                    utilities.showMessage({type: 'INFO', msg: `Successfully created a mysql record in (pbiss) for Firestore Id ${id}`});   
+                    utilities.totalSSWrittenInMySql++;
+                }
+             });
+        });
+
+        setTimeout(() => {
+            resolve();       
+        }, 1000);        
+    });
+};
+
+
+
 
 
 // This will be called to update the Firestore information in the mysql record
@@ -135,6 +175,7 @@ const updateRec = (tblName, firestoreRec) => {
                     reject();
                 } else {
                     utilities.showMessage({type: 'INFO', msg: `Successfully updated a mysql record for Firestore Id ${firestoreRec['id']}`});
+                    // TODO  Will need to update the pbichildren and pbiss tables as well from data in the two arrays children and ss
                     resolve();
                 }
             }
@@ -166,18 +207,34 @@ const readRecByFirestoreId = (tblName, id) => {
 const createLogRec = ( {type, msg, collectionName, tableName, other}) => {
     const con = db.getConnection();
     
-    const rec = { 
-                    Type: type,
-                    CreatedAt: new Date(Date.now()),
-                    Batch: new Date(utilities.batchTime),
-                    Msg: msg,
-                    CollectionName: collectionName,
-                    TableName: tableName,
-                    Other: other,
-                    Pid: process.pid
-                };
-    
-    con.query(`INSERT INTO pbilog SET ?`, rec, (err, res) => {});       
+    return new Promise((resolve, reject) => {
+        const rec = { 
+                        Type: type,
+                        CreatedAt: new Date(Date.now()),
+                        Batch: new Date(utilities.batchTime),
+                        Msg: msg,
+                        CollectionName: collectionName,
+                        TableName: tableName,
+                        Other: other,
+                        Pid: process.pid
+                    };
+        
+        con.query(`INSERT INTO pbilog SET ?`, rec, (err, res) => {
+            resolve();
+        });       
+    });
+};
+
+
+const writeSummary = async () => {    
+    try {
+        await createLogRec({type:'INFO', msg: ` Total Records Read from ${utilities.firestoreCollectionName} : ${utilities.totalRecsReadFromFirestore}`, other: 'SUMMARY'});    
+        await createLogRec({type:'INFO', msg: ` Total Records Written to ${utilities.sqlTableName} : ${utilities.totalCustomersWrittenInMySql}`, other: 'SUMMARY'});    
+        await createLogRec({type:'INFO', msg: ` Total Records Written to pchildren : ${utilities.totalChildrenWrittenInMySql}`, other: 'SUMMARY'});    
+        await createLogRec({type:'INFO', msg: ` Total Records Written to pbiss : ${utilities.totalSSWrittenInMySql}`, other: 'SUMMARY'});    
+    } finally {
+        return Promise.resolve();
+    }
 };
 
 const endConnection = () => {
@@ -190,6 +247,7 @@ const sqlService = {
     createRec,
     updateRec,
     createLogRec,
+    writeSummary,
     endConnection
 };
 
