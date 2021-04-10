@@ -11,7 +11,12 @@ This project brings data from
         so the call would be -> node index.js <collection name>  <sql table name>
         node index.js customers pbicustomer
       
-#DATE
+    TO CODE SUPPORT FOR NEW COLLECTIONS
+    Just add a <Firestore Collection Name>.js file in the ModuleLogic folder (copy an existing one and just code the create / update functions)
+
+
+
+# HANDLING DATE
    Javascript               ->      MySQL
    new Date(# or string)            can be held in DATETIME Type
 
