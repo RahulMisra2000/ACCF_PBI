@@ -17,7 +17,10 @@ const state = {
     totalRecsReadFromFirestore: 0,
     totalCustomersWrittenInMySql: 0,
     totalChildrenWrittenInMySql: 0,
-    totalSSWrittenInMySql: 0
+    totalSSWrittenInMySql: 0,
+
+    totalUsersWrittenInMySql: 0,
+
 };
 
 export default state;

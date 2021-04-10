@@ -7,7 +7,7 @@ const createLogRec = ( {type, msg, collectionName, tableName, other}) => {
     return new Promise((resolve, reject) => {
         const rec = { 
                         Type: type,
-                        CreatedAt: new Date(Date.now()),
+                        CreatedAt: new Date(),
                         Batch: new Date(state.batchTime),
                         Msg: msg,
                         CollectionName: collectionName,

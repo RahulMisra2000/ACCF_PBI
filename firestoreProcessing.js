@@ -48,8 +48,9 @@ const GetFirestoreRecords = (collectionName) => {
     xDaysAgo.setDate(xDaysAgo.getDate() - state.numberOfDaysBeforeTodayToGetRecordsFrom);
 
     let coll = firestoreDB.collection(collectionName);
+    // TODO FIX THIS
     // coll = coll.where('createdAt', '>=', xDaysAgo.getTime());
-    coll = coll.where('createdAt', '>=', 1617139272729);    
+    coll = coll.where('createdAt', '>=', 1616894122379);    
     coll = coll.limit(recordsToReadAtOneTime);
     coll = coll.orderBy('createdAt');
 

@@ -127,6 +127,7 @@ const updateRec = (tblName, firestoreRec) => {
                                         ServiceCompletion = ?,
                                         Uid = ?,
                                         UidEmail = ?,
+                                        ModifiedDate = ?,
                                         NumTimesTouchedByFirestore = NumTimesTouchedByFirestore + 1
                                      WHERE FirestoreId = ?`, 
                                     [
@@ -143,6 +144,7 @@ const updateRec = (tblName, firestoreRec) => {
                                         firestoreRec.serviceCompletion,
                                         firestoreRec.uid,
                                         firestoreRec.uidEmail,
+                                        new Date(),
                                         firestoreRec.id
                                     ], 
             function (err, results, fields) {
@@ -171,10 +173,10 @@ const writeSummary = async () => {
 };
 
 
-const customerLogic = {    
+const customersLogic = {    
     createRec,
     updateRec,
     writeSummary
 };
 
-export default customerLogic;
+export default customersLogic;

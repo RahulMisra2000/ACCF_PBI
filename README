@@ -1,8 +1,8 @@
 This project brings data from 
   Firestore Collection named in process.argv[2] to MySql table named in process.argv[3]
-    The other tables are hard-coded because there can be a 1:M relationship between Firestore collection and SQL tables
+    The other sql table names are hard-coded because there can be a 1:M relationship between Firestore collection and SQL tables
     
-    The call is :
+    SYNTAX :
         node index.js <collection name>  <sql table name>                       // console app
         Or
         node startngrokandexpres.js <collection name>  <sql table name>         // experimental express app
@@ -10,8 +10,18 @@ This project brings data from
         eg. Firestore collection customers populates pbicustomer, pbichildren, pbiss and writes to logfile pbilog
         so the call would be -> node index.js <collection name>  <sql table name>
         node index.js customers pbicustomer
-        To support another collection you would call 
-          
+      
+#DATE
+   Javascript               ->      MySQL
+   new Date(# or string)            can be held in DATETIME Type
+
+   # means Date.now()
+   string means new Date()
+
+                                    I am using TIMESTAMP type with default of CURRENT_TIMESTAMP for creation date in mysql records
+
+
+
 
 ### This project has two entry points.
 index.js 
