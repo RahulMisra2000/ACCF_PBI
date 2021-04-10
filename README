@@ -1,8 +1,35 @@
-### This project has two entry points. See package.json for commands to start them
-The startngrokandexpress is experimental. Just gives me a basic ability to download data from Firestore into MySQL.
-There are some routes in the express that are just experimental and not fully functional.
-The only route that seems to work now is when you call /pbi just once -- it downloads data from Firestore into MySQL
-It rights a lot of data to pbilog file... that needs to be addressed
+This project brings data from 
+  Firestore Collection named in process.argv[2] to MySql table named in process.argv[3]
+    The other tables are hard-coded because there can be a 1:M relationship between Firestore collection and SQL tables
+    
+    The call is :
+        node index.js <collection name>  <sql table name>                       // console app
+        Or
+        node startngrokandexpres.js <collection name>  <sql table name>         // experimental express app
+
+        eg. Firestore collection customers populates pbicustomer, pbichildren, pbiss and writes to logfile pbilog
+        so the call would be -> node index.js <collection name>  <sql table name>
+        node index.js customers pbicustomer
+        To support another collection you would call 
+          
+
+### This project has two entry points.
+index.js 
+  entry point is a console application that takes data from Firestore and populates MySQL
+
+The startngrokandexpress is experimental. 
+    startngrokandexpress entry point is an express web server app that also takes data from Firestore and populates MySQL
+    Just gives me a basic ability to download data from Firestore into MySQL.
+    There are some routes in the express that are just experimental and not fully functional.
+    The only route that seems to work now is when you call /pbi just once -- it downloads data from Firestore into MySQL
+    It rights a lot of data to pbilog file... that needs to be addressed
+
+  
+
+
+
+
+
 
 ### Using the Firebase Admin SDK from nodejs environment - https://firebase.google.com/docs/admin/setup
 

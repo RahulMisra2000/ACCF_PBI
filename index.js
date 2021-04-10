@@ -4,28 +4,31 @@ import './specialEnv.js';
 
 import db from './connection.js';
 import utilities from './utilities.js';
+import state from './state.js';
 import downloadPBIData from './DownloadPBIdata.js';
 import sqlService from './sqlService.js';
 
-//#region MODULE-LEVEL VARIABLES
+//#region MODULE-LEVEL VARIABLES and HANDLERS 
 // Defined outside all functions
 let connectionMadeInterval, connectionCloseInterval;
 //#endregion
 
 //#region FUNCTONS
-// Check every 6 seconds if a Sql connection was made
+// Check every 6 seconds if Sql connection was made so we can start the core of our program
 const SeeIfConnectionWasMade = (startProgram) => {
   connectionMadeInterval = setInterval(() => {  
-    if (utilities.dbConnectionMade) {
+    if (state.dbConnectionMade) {
       utilities.showMessage({type:'INFO', msg:'Starting Program'});
       clearInterval(connectionMadeInterval);      
+      
       startProgram();
     }
-    utilities.dbConnectionWaitCount++;
-    utilities.showMessage({type: '(interval)', msg: `Waiting for Sql DB connection ${utilities.dbConnectionWaitCount} of ${utilities.dbConnectionWaitMaxCount}`});
-    if (utilities.dbConnectionWaitCount >= utilities.dbConnectionWaitMaxCount) {
+
+    state.dbConnectionWaitCount++;
+    utilities.showMessage({type: '(interval)', msg: `Waiting for Sql DB connection ${state.dbConnectionWaitCount} of ${state.dbConnectionWaitMaxCount}`});
+    if (state.dbConnectionWaitCount >= state.dbConnectionWaitMaxCount) {
       clearAllIntevals();
-      utilities.showMessage({type: '(interval)', msg: `Could not connect to Sql DB in ${utilities.dbConnectionWaitCount * 4} seconds`});
+      utilities.showMessage({type: '(interval)', msg: `Could not connect to Sql DB in ${state.dbConnectionWaitCount * 4} seconds`});
       process.exit(1);
     }
   }, 4000);  
@@ -45,7 +48,7 @@ const finalHouseKeeping = () => {
 const checkIfConnectionNeedsToBeClosed = () => {
   connectionCloseInterval = setInterval(async () => {
     utilities.showMessage({type:'(interval)', msg:'Checking if MySql database connection needs to be closed ...'});
-    if (utilities.closeMySqlDatabaseConnection) {
+    if (state.closeMySqlDatabaseConnection) {
       try {
         // Final housekeeping
         await finalHouseKeeping();
@@ -80,13 +83,13 @@ const startProgram = () => {
     utilities.showMessage({type:'ERROR', msg:'${e}'});
   })
   .finally(() => {
-    utilities.closeMySqlDatabaseConnection = true;
+    state.closeMySqlDatabaseConnection = true;
   });;
 };
 //#endregion
 
 //#region  MAIN
-/* Execution starts from here because these lines of code are not in any function.
+/* Execution starts from here because these lines of code are not in any function. They are free standing
    These are executed during the import phase
 */
 

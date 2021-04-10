@@ -64,20 +64,20 @@ const trimFieldsInCsvLine = (csvLine) => {
 
 const _CsvFileToMySql = (fileName) => {
     let csvLineNum = 1;
-    utilities.sqlErrorsArray.length = [];
+    state.sqlErrorsArray.length = [];
     
     return new Promise((resolve, reject) => {
         fs.createReadStream(fileName)
         .pipe(csv(csvOptions))
         .on('data', async (csvLine) => {                                    
-            sqlService.CUDcsvLineIntoMySQL(utilities.sqlTableName, trimFieldsInCsvLine(csvLine), ++csvLineNum);  // CUD determination HERE
+            sqlService.CUDcsvLineIntoMySQL(state.sqlTableName, trimFieldsInCsvLine(csvLine), ++csvLineNum);  // CUD determination HERE
         })
         .on('end', () => {            
             // Give some time because the csv reading finishes a LOT faster than the sql operations
             // Hopefully the setTimeout seconds will be enough for all the csv records to be processed into the mysql table
             setTimeout(() => {
-                utilities.sqlErrorsArray.length 
-                    ? resolve(`${csvLineNum} csv lines were read. ${utilities.sqlErrorsArray.length} csv lines were not processed into mysql`) 
+                state.sqlErrorsArray.length 
+                    ? resolve(`${csvLineNum} csv lines were read. ${state.sqlErrorsArray.length} csv lines were not processed into mysql`) 
                     : resolve(`All ${csvLineNum} csv lines were read and processed into mysql`);                
             }, 10000); // TODO: When going LIVE test with max csv records and then adjust the 10 seconds to whatever is needed for safety
         });

@@ -41,7 +41,7 @@ const shutdownServers = () => {
     utilities.showMessage({type: '(interval)', msg: `HTTPS server closed`});
   });
 
-  utilities.closeMySqlDatabaseConnection = true;
+  state.closeMySqlDatabaseConnection = true;
 };
 
 process.on("uncaughtException", (err) => {
@@ -63,15 +63,15 @@ process.on('SIGTERM', () => {
 // Check every 6 seconds if a Sql connection was made
 const SeeIfConnectionWasMade = (startProgram) => {
   connectionMadeInterval = setInterval(() => {  
-    if (utilities.dbConnectionMade) {      
+    if (state.dbConnectionMade) {      
       clearInterval(connectionMadeInterval);      
       startProgram();
     }
-    utilities.dbConnectionWaitCount++;
-    utilities.showMessage({type: '(interval)', msg: `Waiting for Sql DB connection ${utilities.dbConnectionWaitCount} of ${utilities.dbConnectionWaitMaxCount}`});
-    if (utilities.dbConnectionWaitCount >= utilities.dbConnectionWaitMaxCount) {
+    state.dbConnectionWaitCount++;
+    utilities.showMessage({type: '(interval)', msg: `Waiting for Sql DB connection ${state.dbConnectionWaitCount} of ${state.dbConnectionWaitMaxCount}`});
+    if (state.dbConnectionWaitCount >= state.dbConnectionWaitMaxCount) {
       clearAllIntevals();
-      utilities.showMessage({type: '(interval)', msg: `Could not connect to Sql DB in ${utilities.dbConnectionWaitCount * 4} seconds`});
+      utilities.showMessage({type: '(interval)', msg: `Could not connect to Sql DB in ${state.dbConnectionWaitCount * 4} seconds`});
       process.exit(1);
     }
   }, 4000);  
@@ -81,7 +81,7 @@ const SeeIfConnectionWasMade = (startProgram) => {
 const checkIfConnectionNeedsToBeClosed = () => {
   connectionCloseInterval = setInterval(() => {
     utilities.showMessage({type:'(interval)', msg:'Checking if MySql database connection needs to be closed ...'});
-    if (utilities.closeMySqlDatabaseConnection) {
+    if (state.closeMySqlDatabaseConnection) {
       db.closeConnection();          
       utilities.showMessage({type:'INFO', msg:'PROGRAM ENDING NOW'});
       clearAllIntevals(); // because the node app won't close if there are uncleared intervals
@@ -139,7 +139,7 @@ const startProgram = () => {
         utilities.showMessage({type:'ERROR', msg:'${e}'});
       })
       .finally(() => {
-        utilities.closeMySqlDatabaseConnection = true;
+        state.closeMySqlDatabaseConnection = true;
         downloadDataProcessingInProgress = false;
       });
 

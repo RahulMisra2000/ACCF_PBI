@@ -1,7 +1,6 @@
 // Documentation for mysql npm package - https://github.com/mysqljs/mysql
-// const mysql = require('mysql');
 import mysql from 'mysql';
-import utilities from './utilities.js';
+import state from './state.js';
 
 let con = null;
 
@@ -18,17 +17,21 @@ const db = {
             con.connect((err) => {
                 // This is an async callback by mysql software
                 if (!err) {
-                    utilities.showMessage({type: 'INFO', msg: `(((Database connected established)))`});
-                    utilities.dbConnectionMade = true;
+                    if (process.env.showConsoleMessage) {
+                        console.log('Database connected established');
+                    }
+                    state.dbConnectionMade = true;
                 }
-                // We are not ignoring the error. We are working off utilities.dbConnectionMade and so that is the same thing
+                // We are not ignoring the error. We are working off state.dbConnectionMade and so that is the same thing
             });  
         }
         return con;
     },
     closeConnection : () => {
-        if (con) {            
-            utilities.showMessage({type: 'INFO', msg: `Database connected closed`});
+        if (con) {      
+            if (process.env.showConsoleMessage){      
+                console.log('Database connected closed');
+            }
             setTimeout(() => {
                 // The timeout gives other messages elsewhere in the application a possible chance to be written to the log table
                 con.end();

@@ -1,10 +1,8 @@
 import crypto from 'crypto';
-import sqlService from './sqlService.js';
+import state from './state.js';
+import LogService from './LogService.js';
 
-// I AM KEEPING SOME STATE INFO HERE AS WELL
 const utilities = {
-    sqlTableName : 'pbicustomer',
-    firestoreCollectionName : 'customers',
     isAlphaNumeric : (data) => {
         return /[a-z0-9]+/i.test(data);        
     },
@@ -21,35 +19,20 @@ const utilities = {
             if (obj) {
                 console.log(obj);
             }
-        }        
+        } 
+              
         if (process.env.writeAllMessagesToLogTable == 'yes'){
-            utilities.writeToLog({type, msg, collectionName: utilities.firestoreCollectionName, tableName: utilities.sqlTableName, other});
+            utilities.writeToLog({type, msg, collectionName: state.firestoreCollectionName, tableName: state.sqlTableName, other});
         } else if (process.env.writeOnlyErrorTypeToLogTable == 'yes'){            
             if (type == 'ERROR') {
-                utilities.writeToLog({type, msg, collectionName: utilities.firestoreCollectionName, tableName: utilities.sqlTableName, other});
+                utilities.writeToLog({type, msg, collectionName: state.firestoreCollectionName, tableName: state.sqlTableName, other});
             }
         }
+        
     },
     writeToLog: (obj) => {
-        sqlService.createLogRec(obj);
-    },
-
-    batchTime: Date.now(),
-    closeMySqlDatabaseConnection : false,
-    sqlErrorsArray: [],
-    dbConnectionMade: false,
-    dbConnectionWaitCount: 0,
-    dbConnectionWaitMaxCount: 5,
-
-    numberOfDaysBeforeTodayToGetRecordsFrom: 15,
-    lastRec: null,
-
-    allClearToGetMoreFirestoreRecords: 'yes',
-
-    totalRecsReadFromFirestore: 0,
-    totalCustomersWrittenInMySql: 0,
-    totalChildrenWrittenInMySql: 0,
-    totalSSWrittenInMySql: 0
+        LogService.createLogRec(obj);
+    }
 };
 
 export default utilities;

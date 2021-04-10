@@ -1,6 +1,6 @@
 import admin from 'firebase-admin';
-import db from './connection.js';
 import utilities from './utilities.js';
+import state from './state.js';
 import sqlService from './sqlService.js';
 
 //import serviceAccount from './rm2000app-firebase-adminsdk-93cvg-7977f045fd.json';
@@ -18,13 +18,13 @@ const firestoreDB = admin.firestore();
 const ProcessFirestoreRecords = (data) => {
     let rowsProcessed = 0;
     let rowsToProcess = data.length;
-    utilities.totalRecsReadFromFirestore+= data.length;            
+    state.totalRecsReadFromFirestore+= data.length;            
 
     // Helper
     const _interval = setInterval(() => {
         if (rowsProcessed >= rowsToProcess) {
             utilities.showMessage({type: 'INFO', msg: `${rowsProcessed} / ${rowsToProcess} records have been processed. So, ok to request next batch`});
-            utilities.allClearToGetMoreFirestoreRecords = 'yes';
+            state.allClearToGetMoreFirestoreRecords = 'yes';
             clearInterval(_interval);
         }        
     }, 1000);
@@ -32,7 +32,7 @@ const ProcessFirestoreRecords = (data) => {
     data.forEach(async (v, i, a) => {        
         utilities.showMessage({type: 'INFO', msg: `Data in record ${v.id}`});        
         try {
-            await sqlService.CUDfirestoreRecIntoMySQL(utilities.sqlTableName, v);
+            await sqlService.CUDfirestoreRecIntoMySQL(state.sqlTableName, v);
         } catch (e) {
         } finally {            
             rowsProcessed++;            
@@ -45,7 +45,7 @@ const GetFirestoreRecords = (collectionName) => {
     const recordsToReadAtOneTime = 3;
     let recsData = [];
     let xDaysAgo = new Date()
-    xDaysAgo.setDate(xDaysAgo.getDate() - utilities.numberOfDaysBeforeTodayToGetRecordsFrom);
+    xDaysAgo.setDate(xDaysAgo.getDate() - state.numberOfDaysBeforeTodayToGetRecordsFrom);
 
     let coll = firestoreDB.collection(collectionName);
     // coll = coll.where('createdAt', '>=', xDaysAgo.getTime());
@@ -54,29 +54,29 @@ const GetFirestoreRecords = (collectionName) => {
     coll = coll.orderBy('createdAt');
 
     //#region NOW GET THE RECORDS
-    utilities.showMessage({type: 'DEBUG', msg: `lastRec is ${utilities.lastRec}`});    
-    if (utilities.lastRec) {
-        coll = coll.startAfter(utilities.lastRec);
+    utilities.showMessage({type: 'DEBUG', msg: `lastRec is ${state.lastRec}`});    
+    if (state.lastRec) {
+        coll = coll.startAfter(state.lastRec);
     }
     
-    utilities.allClearToGetMoreFirestoreRecords = 'no';
+    state.allClearToGetMoreFirestoreRecords = 'no';
     coll.get()
     .then((querySnapshot) => {        
         querySnapshot.forEach((doc) => {
             recsData.push({ ...doc.data(), id: doc.id });                        
-            utilities.lastRec = querySnapshot.docs[querySnapshot.docs.length - 1];            
+            state.lastRec = querySnapshot.docs[querySnapshot.docs.length - 1];            
         });
         utilities.showMessage({type: 'INFO', msg: `Read ${recsData.length} records from Firestore`});    
 
         if (recsData.length <= 0) {
-            utilities.allClearToGetMoreFirestoreRecords = 'nomoreRecs';
+            state.allClearToGetMoreFirestoreRecords = 'nomoreRecs';
         } else {
             ProcessFirestoreRecords(recsData);        
         }
     })
     .catch((err) => {
         utilities.showMessage({type: 'ERROR', msg: `Error accessing ${collectionName} from Firestore : ${err.message}`});    
-        utilities.allClearToGetMoreFirestoreRecords = 'pbm';
+        state.allClearToGetMoreFirestoreRecords = 'pbm';
     })
     .finally(() => {            
     });
@@ -89,17 +89,17 @@ const _firestoreToSql = () => {
     return new Promise((resolve, reject) => {
        
         const si = setInterval(() => {
-            if (utilities.allClearToGetMoreFirestoreRecords == 'pbm') {
-                utilities.showMessage({type: 'ERROR', msg: `Problem accessing Firestore collection ${utilities.firestoreCollectionName}`});    
+            if (state.allClearToGetMoreFirestoreRecords == 'pbm') {
+                utilities.showMessage({type: 'ERROR', msg: `Problem accessing Firestore collection ${state.firestoreCollectionName}`});    
                 clearInterval(si);
-                reject(`ERROR: Problem accessing Firestore collection ${utilities.firestoreCollectionName}`);
-            } else if (utilities.allClearToGetMoreFirestoreRecords == 'nomoreRecs'){
-                utilities.showMessage({type: 'INFO', msg: `No more records in Firestore collection ${utilities.firestoreCollectionName}`});    
+                reject(`ERROR: Problem accessing Firestore collection ${state.firestoreCollectionName}`);
+            } else if (state.allClearToGetMoreFirestoreRecords == 'nomoreRecs'){
+                utilities.showMessage({type: 'INFO', msg: `No more records in Firestore collection ${state.firestoreCollectionName}`});    
                 clearInterval(si);
                 resolve(`DONE`);
-            } else if (utilities.allClearToGetMoreFirestoreRecords == 'yes'){
-                utilities.showMessage({type: 'INFO', msg: `Will try to get records from Firestore collection ${utilities.firestoreCollectionName}`});    
-                GetFirestoreRecords(utilities.firestoreCollectionName);
+            } else if (state.allClearToGetMoreFirestoreRecords == 'yes'){
+                utilities.showMessage({type: 'INFO', msg: `Will try to get records from Firestore collection ${state.firestoreCollectionName}`});    
+                GetFirestoreRecords(state.firestoreCollectionName);
             } else { 
                 utilities.showMessage({type: 'INFO', msg: `Waiting to get Read more records from Firestore collection ${utilities.collecfirestoreCollectionNametionName}`});    
             }
