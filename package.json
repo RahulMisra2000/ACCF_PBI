@@ -5,7 +5,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "FirestoreToSql": "node index.js",
+    "FirestoreToSql": "node pbiIndex.js",
     "StartNgrokAndExpress": "node startngrokandexpress.js"
   },
   "keywords": [],

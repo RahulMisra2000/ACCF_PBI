@@ -55,8 +55,8 @@ const checkIfConnectionNeedsToBeClosed = () => {
       } catch(e) {
 
       } finally {
-        db.closeConnection();          
         utilities.showMessage({type:'INFO', msg:'PROGRAM ENDING NOW'});
+        db.closeConnection();          
         clearAllIntevals(); // because the node app won't close if there are uncleared intervals
       }      
     }
