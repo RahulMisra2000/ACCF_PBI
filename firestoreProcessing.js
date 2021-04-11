@@ -31,9 +31,10 @@ const ProcessFirestoreRecords = (data) => {
 
     data.forEach(async (v, i, a) => {        
         utilities.showMessage({type: 'INFO', msg: `Data in record ${v.id}`});        
-        try {
+        try {       
             await sqlService.CUDfirestoreRecIntoMySQL(state.sqlTableName, v);
         } catch (e) {
+            //
         } finally {            
             rowsProcessed++;            
         }
@@ -47,6 +48,8 @@ const GetFirestoreRecords = (collectionName) => {
     let xDaysAgo = new Date()
     xDaysAgo.setDate(xDaysAgo.getDate() - state.numberOfDaysBeforeTodayToGetRecordsFrom);
 
+    state.allClearToGetMoreFirestoreRecords = 'no';
+
     let coll = firestoreDB.collection(collectionName);
     // TODO FIX THIS
     // coll = coll.where('createdAt', '>=', xDaysAgo.getTime());
@@ -59,8 +62,7 @@ const GetFirestoreRecords = (collectionName) => {
     if (state.lastRec) {
         coll = coll.startAfter(state.lastRec);
     }
-    
-    state.allClearToGetMoreFirestoreRecords = 'no';
+        
     coll.get()
     .then((querySnapshot) => {        
         querySnapshot.forEach((doc) => {
@@ -102,9 +104,9 @@ const _firestoreToSql = () => {
                 utilities.showMessage({type: 'INFO', msg: `Will try to get records from Firestore collection ${state.firestoreCollectionName}`});    
                 GetFirestoreRecords(state.firestoreCollectionName);
             } else { 
-                utilities.showMessage({type: 'INFO', msg: `Waiting to get Read more records from Firestore collection ${utilities.collecfirestoreCollectionNametionName}`});    
+                utilities.showMessage({type: 'INFO', msg: `Waiting to get Read more records from Firestore collection ${state.firestoreCollectionName}`});    
             }
-        }, 7000);
+        }, 3000);
 
     });
 

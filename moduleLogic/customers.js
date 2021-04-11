@@ -4,6 +4,7 @@ import state from '../state.js';
 import LogService from '../LogService.js';
 
 
+//#region "C of CUD"
 const createRec = (tblName, firestoreRec) => {
     const con = db.getConnection();
     
@@ -29,85 +30,263 @@ const createRec = (tblName, firestoreRec) => {
                 reject();
             } else {
                 utilities.showMessage({type: 'INFO', msg: `Successfully created a mysql record in (${tblName}) for Firestore Id ${firestoreRec.id}`});                
-                state.totalCustomersWrittenInMySql++;
-
-                // Add children and ss data which are arrays in the firestore record, to the children and ss tables in SQL
-                if (firestoreRec.children.length) {
-                    await _createChildrenTable(firestoreRec.id, firestoreRec.children);
-                }                
-                
-                // Add ss to another table
-                if (firestoreRec.ss.length) {
-                    await _createPbisTable(firestoreRec.id, firestoreRec.ss);
+                state.totalCustomersWrittenInMySql++;  
+                try {              
+                    await _createChildrenTable(firestoreRec);
+                    await _createPbisTable(firestoreRec);
+                } catch (e) {
+                    //
                 }
-                resolve();
+                finally {
+                    resolve();
+                }
             }
         });       
     });
 };
 
 
-const _createChildrenTable = (id, children) => {
+const _createChildrenTable = (firestoreRec) => {
     const con = db.getConnection();
 
     return new Promise(async (resolve, reject) => {
-        children.forEach((v, i, a) => {
+        let rowsProcessed = 0;
+        let rowsInError = 0;
+        let rowsToProcess = firestoreRec.children.length;
+
+        // Helper
+        const _interval = setInterval(() => {
+            if (rowsProcessed >= rowsToProcess) { 
+                clearInterval(_interval);
+                if (rowsInError) {
+                    reject();
+                } else {
+                    resolve();               
+                }
+            }        
+        }, 1000);
+        
+
+        firestoreRec.children.forEach((v, i, a) => {
             const rec = {
                 Age: +v.age,
                 Grade: v.grade,
                 Name: v.name,
                 School: v.school,
-                CustomerId: id,
-                BatchTime: new Date(state.batchTime)
+                CustomerFirestoreId: firestoreRec.id,
+                BatchTime: new Date(state.batchTime),
+                Uid : firestoreRec.uid,
+                UidEmail : firestoreRec.uidEmail,
+                Status : firestoreRec.status,
+                RecStatus : firestoreRec.recStatus,
+                ModifiedDate : new Date(),
+                NumTimesTouchedByFirestore : 1
             };
             con.query(`INSERT INTO pbichildren SET ?`, rec, (err, res) => {
                 if (err) {                                
-                    utilities.showMessage({type: 'ERROR', msg: `Creating rec in pbichildren while processing firestore rec id: ${id}`, obj:err, other: err.message});                 
+                    utilities.showMessage({type: 'ERROR', msg: `Creating rec in pbichildren while processing firestore rec id: ${firestoreRec.id}`, obj:err, other: err.message});                 
+                    rowsInError++;
                 } else {
-                    utilities.showMessage({type: 'INFO', msg: `Successfully created a mysql record in (pchildren) for Firestore Id ${id}`});  
+                    utilities.showMessage({type: 'INFO', msg: `Successfully created a mysql record in (pchildren) for Firestore Id ${firestoreRec.id}`});  
                     state.totalChildrenWrittenInMySql++; 
                 }
+                rowsProcessed++;                      
              });
         });
-
-        setTimeout(() => {
-            resolve();       
-        }, 1000);        
     });
 };
 
-const _createPbisTable = (id, ss) => {
+const _createPbisTable = (firestoreRec) => {
     const con = db.getConnection();
 
     return new Promise(async (resolve, reject) => {
-        ss.forEach((v, i, a) => {
+        let rowsProcessed = 0;
+        let rowsInError = 0;
+        let rowsToProcess = firestoreRec.ss.length;
+
+        // Helper
+        const _interval = setInterval(() => {
+            if (rowsProcessed >= rowsToProcess) { 
+                clearInterval(_interval);
+                if (rowsInError) {
+                    reject();
+                } else {
+                    resolve();               
+                }
+            }        
+        }, 1000);
+    
+
+        firestoreRec.ss.forEach((v, i, a) => {
             const rec = {
-                Date: v.date,
+                CreatedAt: new Date(v.date),
                 Strength: v.strength,
                 Stressor: v.stressor,                
-                CustomerId: id,
-                BatchTime: new Date(state.batchTime)
+                CustomerFirestoreId: firestoreRec.id,
+                BatchTime: new Date(state.batchTime),
+                Uid : firestoreRec.uid,
+                UidEmail : firestoreRec.uidEmail,
+                Status : firestoreRec.status,
+                RecStatus : firestoreRec.recStatus,
+                ModifiedDate : new Date(),
+                NumTimesTouchedByFirestore : 1
             };
             con.query(`INSERT INTO pbiss SET ?`, rec, (err, res) => {
                 if (err) {                                
-                    utilities.showMessage({type: 'ERROR', msg: `Creating rec in pbiss while processing firestore rec id: ${id}`, obj:err, other: err.message});                 
+                    utilities.showMessage({type: 'ERROR', msg: `Creating rec in pbiss while processing firestore rec id: ${firestoreRec.id}`, obj:err, other: err.message});                 
+                    rowsInError++;
                 } else {
-                    utilities.showMessage({type: 'INFO', msg: `Successfully created a mysql record in (pbiss) for Firestore Id ${id}`});   
+                    utilities.showMessage({type: 'INFO', msg: `Successfully created a mysql record in (pbiss) for Firestore Id ${firestoreRec.id}`});   
                     state.totalSSWrittenInMySql++;
                 }
+                rowsProcessed++;
              });
         });
+    });
+};
 
-        setTimeout(() => {
-            resolve();       
-        }, 1000);        
+//#endregion
+
+
+const _updateChildrenTable = (firestoreRec) => {
+    const con = db.getConnection();
+
+    return new Promise(async (resolve, reject) => {
+        let rowsProcessed = 0;
+        let rowsInError = 0;
+        let rowsToProcess = firestoreRec.children.length;
+
+        // Helper
+        const _interval = setInterval(() => {
+            if (rowsProcessed >= rowsToProcess) { 
+                clearInterval(_interval);
+                if (rowsInError) {
+                    reject();
+                } else {
+                    resolve();               
+                }
+            }        
+        }, 1000);
+        
+
+        firestoreRec.children.forEach((v, i, a) => {
+            con.query(`UPDATE pbichildren 
+                SET 
+                    Age = ?,
+                    Grade = ?,
+                    Name = ?,
+                    School = ?,
+                    CustomerFirestoreId = ?,
+                    BatchTime = ?,
+                    Uid = ?,
+                    UidEmail = ?,
+                    Status = ?,
+                    RecStatus = ?,
+                    ModifiedDate = ?,
+                    NumTimesTouchedByFirestore = NumTimesTouchedByFirestore + 1
+                WHERE FirestoreId = ?`, 
+                    [
+                    +v.age,
+                    v.grade,
+                    v.name,
+                    v.school,
+                    firestoreRec.id,
+                    new Date(state.batchTime),
+                    firestoreRec.uid,
+                    firestoreRec.uidEmail,
+                    firestoreRec.status,
+                    firestoreRec.recStatus,
+                    new Date(),
+                    
+                    firestoreRec.id
+                 ], 
+                (err, res) => {
+                    if (err) {                                
+                        utilities.showMessage({type: 'ERROR', msg: `Updating rec in pbichildren while processing firestore rec id: ${firestoreRec.id}`, obj:err, other: err.message});                 
+                        rowsInError++;
+                    } else {
+                        utilities.showMessage({type: 'INFO', msg: `Successfully update a mysql record in (pchildren) for Firestore Id ${firestoreRec.id}`});  
+                        state.totalChildrenWrittenInMySql++; 
+                    }
+                    rowsProcessed++;                      
+                });
+        });
+    });
+};
+
+
+const _updatePbisTable = (firestoreRec) => {
+    const con = db.getConnection();
+
+    return new Promise(async (resolve, reject) => {
+        let rowsProcessed = 0;
+        let rowsInError = 0;
+        let rowsToProcess = firestoreRec.ss.length;
+
+        
+        if (!firestoreRec.ss.length) {
+            return Promise.resolve()
+        }
+
+        // Helper
+        const _interval = setInterval(() => {
+            if (rowsProcessed >= rowsToProcess) { 
+                clearInterval(_interval);
+                if (rowsInError) {
+                    reject();
+                } else {
+                    resolve();               
+                }
+            }        
+        }, 1000);
+        
+
+        firestoreRec.ss.forEach((v, i, a) => {
+            con.query(`UPDATE pbiss 
+                SET 
+                    CreatedAt = ?,
+                    Strength = ?,
+                    Stressor = ?,
+                    CustomerFirestoreId = ?,
+                    BatchTime = ?,
+                    Uid = ?,
+                    UidEmail = ?,
+                    Status = ?,
+                    RecStatus = ?,
+                    ModifiedDate = ?,
+                    NumTimesTouchedByFirestore = NumTimesTouchedByFirestore + 1
+                WHERE FirestoreId = ?`, 
+                    [
+                    new Date(v.createdAt),
+                    v.strength,
+                    v.stressor,                    
+                    firestoreRec.id,
+                    new Date(state.batchTime),
+                    firestoreRec.uid,
+                    firestoreRec.uidEmail,
+                    firestoreRec.status,
+                    firestoreRec.recStatus,
+                    new Date(),
+                    
+                    firestoreRec.id
+                 ], 
+                (err, res) => {
+                    if (err) {                                
+                        utilities.showMessage({type: 'ERROR', msg: `Updating rec in pbichildren while processing firestore rec id: ${firestoreRec.id}`, obj:err, other: err.message});                 
+                        rowsInError++;
+                    } else {
+                        utilities.showMessage({type: 'INFO', msg: `Successfully update a mysql record in (pchildren) for Firestore Id ${firestoreRec.id}`});  
+                        state.totalChildrenWrittenInMySql++; 
+                    }
+                    rowsProcessed++;                      
+                });
+        });
     });
 };
 
 
 
-
-
+//#region U of CUD
 // This will be called to update the Firestore information in the mysql record
 const updateRec = (tblName, firestoreRec) => {
     const con = db.getConnection();
@@ -147,19 +326,23 @@ const updateRec = (tblName, firestoreRec) => {
                                         new Date(),
                                         firestoreRec.id
                                     ], 
-            function (err, results, fields) {
+            async (err, results, fields) => {
                 if (err) {
                     utilities.showMessage({type: 'ERROR', msg: `Processing`, obj:err});
                     reject();
                 } else {
                     utilities.showMessage({type: 'INFO', msg: `Successfully updated a mysql record for Firestore Id ${firestoreRec['id']}`});
-                    // TODO  Will need to update the pbichildren and pbiss tables as well from data in the two arrays children and ss
+                    
+                    await _updateChildrenTable(firestoreRec);           // UPDATE pbichildren table
+                    await _updatePbisTable(firestoreRec);               // UPDATE pbiss table
                     resolve();
                 }
             }
         );
     });
 };
+//#endregion
+
 
 const writeSummary = async () => {   
     try {        

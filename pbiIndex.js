@@ -24,19 +24,24 @@ const SeeIfConnectionWasMade = (startProgram) => {
       startProgram();
     }
 
-    state.dbConnectionWaitCount++;
-    utilities.showMessage({type: '(interval)', msg: `Waiting for Sql DB connection ${state.dbConnectionWaitCount} of ${state.dbConnectionWaitMaxCount}`});
-    if (state.dbConnectionWaitCount >= state.dbConnectionWaitMaxCount) {
-      clearAllIntevals();
-      utilities.showMessage({type: '(interval)', msg: `Could not connect to Sql DB in ${state.dbConnectionWaitCount * 4} seconds`});
-      process.exit(1);
+    if (!state.dbConnectionMade) {
+      state.dbConnectionWaitCount++;
+      utilities.showMessage({type: '(interval)', msg: `Waiting for Sql DB connection ${state.dbConnectionWaitCount} of ${state.dbConnectionWaitMaxCount}`});
+      if (state.dbConnectionWaitCount >= state.dbConnectionWaitMaxCount) {
+        clearAllIntevals();
+        utilities.showMessage({type: '(interval)', msg: `Could not connect to Sql DB in ${state.dbConnectionWaitCount * 4} seconds`});
+        process.exit(1);
+      }
     }
+
   }, 4000);  
 };
 
 const finalHouseKeeping = () => {
   return new Promise((res, rej) => {
     sqlService.writeSummary()
+    .then((d) => {})
+    .catch((e) => {})
     .finally(() => {
       res();
     });
@@ -53,7 +58,7 @@ const checkIfConnectionNeedsToBeClosed = () => {
         // Final housekeeping
         await finalHouseKeeping();
       } catch(e) {
-
+        //
       } finally {
         utilities.showMessage({type:'INFO', msg:'PROGRAM ENDING NOW'});
         db.closeConnection();          

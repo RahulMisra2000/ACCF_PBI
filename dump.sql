@@ -120,41 +120,6 @@ INSERT INTO `countrylanguage` VALUES ('ABW','Dutch','T',5.3),('ABW','English','F
 UNLOCK TABLES;
 
 --
--- Table structure for table `parent`
---
-
-DROP TABLE IF EXISTS `parent`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `parent` (
-  `Id` int NOT NULL AUTO_INCREMENT,
-  `Name` char(50) NOT NULL DEFAULT '',
-  `City` char(50) NOT NULL DEFAULT '',
-  `Hash` char(64) DEFAULT NULL,
-  `Modified` timestamp NULL DEFAULT NULL,
-  `Created` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  `Status` int NOT NULL DEFAULT '1',
-  `ProcareId` varchar(50) NOT NULL,
-  `FirestoreProcessDate` varchar(50) DEFAULT NULL,
-  `FirestoreProcessCounter` int DEFAULT '0',
-  `BatchTime` varchar(50) DEFAULT NULL,
-  `FirestoreId` varchar(60) DEFAULT NULL,
-  PRIMARY KEY (`Id`),
-  UNIQUE KEY `ProcareId_UNIQUE` (`ProcareId`)
-) ENGINE=InnoDB AUTO_INCREMENT=182 DEFAULT CHARSET=latin1;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `parent`
---
-
-LOCK TABLES `parent` WRITE;
-/*!40000 ALTER TABLE `parent` DISABLE KEYS */;
-INSERT INTO `parent` VALUES (172,'1A','1Acity',NULL,'2021-04-06 02:35:42','2021-04-06 01:50:00',99,'1','1617676812791',2,'1617676535432','r3xc4ixN5cPmx2HC5R2y'),(173,'2AName','2Acity',NULL,NULL,'2021-04-06 01:50:00',99,'2','1617673817328',1,'1617673794589','IAnUKtNmBJNRrwdOS34n'),(174,'3AName','3Acity',NULL,NULL,'2021-04-06 01:50:00',99,'3','1617673817323',1,'1617673794589','hzl1FKzI7hqVAz8ZQ5l5'),(175,'10Name','10City-10City',NULL,'2021-04-06 02:03:17','2021-04-06 02:00:06',99,'10','1617676812786',2,'1617674590492','dKGH48aU7hSvatiGaBQd'),(176,'11AName-1A','11Acity',NULL,NULL,'2021-04-06 02:52:55',99,'11','1617677591809',1,'1617677569059','iqprLXj1dTK7rEtC4WNp'),(177,'12-Name','12-city',NULL,'2021-04-06 03:02:32','2021-04-06 02:55:42',99,'12','1617678168308',2,'1617678145603','3BXFbDa19Ekt7Zyp6gog'),(178,'13 Name','13 city',NULL,NULL,'2021-04-06 02:57:27',99,'13','1617677863758',1,'1617677841065','tbXhpv2pFNRtWbFeXMye'),(179,'14 Name','14 city',NULL,NULL,'2021-04-06 03:02:31',99,'14','1617678168303',1,'1617678145603','MdoOe0oL7dKaPjvikpe7'),(180,'15-Name','15-city',NULL,NULL,'2021-04-06 04:05:49',99,'15','1617681966242',1,'1617681943436','HhvlZ1oHxyJGJGSYQoLT'),(181,'16 Name','16 city',NULL,NULL,'2021-04-06 04:05:49',99,'16','1617681966203',1,'1617681943436','DmCKbkjJVnzMPrchoNri');
-/*!40000 ALTER TABLE `parent` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
 -- Table structure for table `pbichildren`
 --
 
@@ -163,7 +128,7 @@ DROP TABLE IF EXISTS `pbichildren`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `pbichildren` (
   `Id` int NOT NULL AUTO_INCREMENT,
-  `CreatedAt` date DEFAULT NULL,
+  `CreatedAt` datetime DEFAULT NULL,
   `Age` int NOT NULL DEFAULT '0',
   `Grade` varchar(64) DEFAULT NULL,
   `Name` varchar(64) DEFAULT NULL,
@@ -171,12 +136,15 @@ CREATE TABLE `pbichildren` (
   `Status` varchar(20) DEFAULT NULL,
   `RecStatus` varchar(20) DEFAULT NULL,
   `FirestoreId` varchar(60) DEFAULT NULL,
-  `CustomerId` varchar(60) DEFAULT NULL,
+  `CustomerFirestoreId` varchar(60) DEFAULT NULL,
   `CreatedAtTimeStamp` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  `BatchTime` date DEFAULT NULL,
+  `BatchTime` datetime DEFAULT NULL,
   `NumTimesTouchedByFirestore` int DEFAULT '1',
+  `Uid` varchar(45) DEFAULT NULL,
+  `UidEmail` varchar(45) DEFAULT NULL,
+  `ModifiedDate` datetime DEFAULT NULL,
   PRIMARY KEY (`Id`)
-) ENGINE=InnoDB AUTO_INCREMENT=230 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=237 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -185,7 +153,6 @@ CREATE TABLE `pbichildren` (
 
 LOCK TABLES `pbichildren` WRITE;
 /*!40000 ALTER TABLE `pbichildren` DISABLE KEYS */;
-INSERT INTO `pbichildren` VALUES (227,NULL,11,'K1','Rahul Misra','School 1',NULL,NULL,NULL,'MAXvLlTz8BhggVzqyxRI','2021-04-10 01:09:28','2021-04-09',1),(228,NULL,1,'K1','kid1','School 1',NULL,NULL,NULL,'lodSFQPzZaLswtzqAw2u','2021-04-10 01:09:35','2021-04-09',1),(229,NULL,2,'K2','kid2','School 2',NULL,NULL,NULL,'lodSFQPzZaLswtzqAw2u','2021-04-10 01:09:35','2021-04-09',1);
 /*!40000 ALTER TABLE `pbichildren` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -198,7 +165,7 @@ DROP TABLE IF EXISTS `pbicustomer`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `pbicustomer` (
   `Id` int NOT NULL AUTO_INCREMENT,
-  `CreatedAt` date DEFAULT NULL,
+  `CreatedAt` datetime DEFAULT NULL,
   `Crisis` varchar(3) NOT NULL DEFAULT '',
   `Name` varchar(64) DEFAULT NULL,
   `Email` varchar(64) DEFAULT NULL,
@@ -213,8 +180,9 @@ CREATE TABLE `pbicustomer` (
   `CreatedAtTimeStamp` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `BatchTime` bigint DEFAULT NULL,
   `NumTimesTouchedByFirestore` int DEFAULT '1',
+  `ModifiedDate` datetime DEFAULT NULL,
   PRIMARY KEY (`Id`)
-) ENGINE=InnoDB AUTO_INCREMENT=253 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=263 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -223,7 +191,7 @@ CREATE TABLE `pbicustomer` (
 
 LOCK TABLES `pbicustomer` WRITE;
 /*!40000 ALTER TABLE `pbicustomer` DISABLE KEYS */;
-INSERT INTO `pbicustomer` VALUES (248,'2021-03-30','No','-1:archived','onemore@onemore.com','1112223434',NULL,'Close','Archive','No','dfs5yVxFhrOyCJu5SIQD7QWHjur2','b@b.com','qdVIiNq1kok8bMZ4ugAb','2021-04-10 01:09:28',1618016956735,1),(249,'2021-03-30','No','0-','0@0.com','0000000000',NULL,'Close','Live','No','dfs5yVxFhrOyCJu5SIQD7QWHjur2','b@b.com','MAXvLlTz8BhggVzqyxRI','2021-04-10 01:09:28',1618016956735,1),(250,'2021-03-30','No','Jack Dorsey','jackdorsey@ha.com','561 213 8989',NULL,'Close','Live','No','dfs5yVxFhrOyCJu5SIQD7QWHjur2','b@b.com','AU9LgIcUSCdwRrHL5hRR','2021-04-10 01:09:28',1618016956735,1),(251,'2021-03-31','No','1 Before Jack Dorsey','1before@before.com','2021238790',NULL,'Open','Live','No','dfs5yVxFhrOyCJu5SIQD7QWHjur2','b@b.com','lodSFQPzZaLswtzqAw2u','2021-04-10 01:09:35',1618016956735,1),(252,'2021-03-31','No','2 before Jack','kingmead@mead.com','212 436-8976',NULL,'Open','Live','No','dfs5yVxFhrOyCJu5SIQD7QWHjur2','b@b.com','aftdMiIQJvXPETX7xjJZ','2021-04-10 01:09:35',1618016956735,1);
+INSERT INTO `pbicustomer` VALUES (253,'2021-03-30 17:21:13','No','-1:archived','onemore@onemore.com','1112223434',NULL,'Close','Archive','No','dfs5yVxFhrOyCJu5SIQD7QWHjur2','b@b.com','qdVIiNq1kok8bMZ4ugAb','2021-04-10 09:14:02',1618156818051,8,'2021-04-11 12:00:42'),(254,'2021-03-30 22:10:48','No','0-','0@0.com','0000000000',NULL,'Close','Live','No','dfs5yVxFhrOyCJu5SIQD7QWHjur2','b@b.com','MAXvLlTz8BhggVzqyxRI','2021-04-10 09:14:02',1618156818051,8,'2021-04-11 12:00:49'),(255,'2021-03-30 23:44:37','No','Jack Dorsey','jackdorsey@ha.com','561 213 8989',NULL,'Close','Live','No','dfs5yVxFhrOyCJu5SIQD7QWHjur2','b@b.com','AU9LgIcUSCdwRrHL5hRR','2021-04-10 09:14:02',1618156818051,8,'2021-04-11 12:00:49'),(256,'2021-03-31 13:38:24','No','1 Before Jack Dorsey','1before@before.com','2021238790',NULL,'Open','Live','No','dfs5yVxFhrOyCJu5SIQD7QWHjur2','b@b.com','lodSFQPzZaLswtzqAw2u','2021-04-10 09:14:09',1618156818051,8,'2021-04-11 12:00:49'),(257,'2021-03-31 15:55:44','No','2 before Jack','kingmead@mead.com','212 436-8976',NULL,'Open','Live','No','dfs5yVxFhrOyCJu5SIQD7QWHjur2','b@b.com','aftdMiIQJvXPETX7xjJZ','2021-04-10 09:14:09',1618156818051,8,'2021-04-11 12:00:56'),(258,'2021-03-27 21:15:22','No','5-American Express National Bank','1arjunmisra2000@gmail.com','717744854210',NULL,'Open','Live','No','dfs5yVxFhrOyCJu5SIQD7QWHjur2','b@b.com','2zoSn4p2p2k8hxHD9CYN','2021-04-10 17:45:53',1618156818051,2,'2021-04-11 12:00:36'),(259,'2021-03-28 05:19:30','No','4-added','aaahulmisra2000@gmail.com','7177448540',NULL,'Open','Live','No','dfs5yVxFhrOyCJu5SIQD7QWHjur2','bx@b.com','569bQg5hchUKPd7w5YNy','2021-04-10 17:45:53',1618156818051,2,'2021-04-11 12:00:36'),(260,'2021-03-28 05:23:52','No','3-American Express National Bank','amexperson@amex.com','8001237891',NULL,'Open','Live','No','dfs5yVxFhrOyCJu5SIQD7QWHjur2','b@b.com','4lDH1oL853nQMpmmFHAQ','2021-04-10 17:45:53',1618156818051,2,'2021-04-11 12:00:36'),(261,'2021-03-28 05:38:57','No','2-Rahul Misra G','rahulmisra2000@gmail.com','7177448540',NULL,'Open','Live','No','PlNGcgU6a1fKTT6vviJcPXgpcKn1','rahulmisra2000@gmail.com','aYSuj8bCQKFpkI3UX4Q9','2021-04-10 17:46:00',1618156818051,2,'2021-04-11 12:00:42'),(262,'2021-03-30 14:27:02','No','1-44444444444444444','44444444444444444@4.com','4444444444',NULL,'Close','Live','No','dfs5yVxFhrOyCJu5SIQD7QWHjur2','b@b.com','GrPou5GXwoRrrUi76EXl','2021-04-10 17:46:00',1618156818051,2,'2021-04-11 12:00:42');
 /*!40000 ALTER TABLE `pbicustomer` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -236,17 +204,19 @@ DROP TABLE IF EXISTS `pbilog`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `pbilog` (
   `Id` int NOT NULL AUTO_INCREMENT,
+  `Subsytem` varchar(25) DEFAULT NULL,
+  `SourceFileName` varchar(45) DEFAULT NULL,
   `Type` varchar(10) DEFAULT NULL,
-  `CreatedAt` varchar(45) DEFAULT NULL,
+  `CreatedAt` datetime DEFAULT NULL,
   `Batch` varchar(64) DEFAULT NULL,
-  `Msg` varchar(128) DEFAULT NULL,
+  `Msg` varchar(256) DEFAULT NULL,
   `CollectionName` varchar(32) DEFAULT NULL,
   `TableName` varchar(32) DEFAULT NULL,
-  `Other` varchar(128) DEFAULT NULL,
+  `Other` varchar(256) DEFAULT NULL,
   `CreatedTimeStamp` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `Pid` int DEFAULT NULL,
   PRIMARY KEY (`Id`)
-) ENGINE=InnoDB AUTO_INCREMENT=1816 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=3066 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -255,7 +225,6 @@ CREATE TABLE `pbilog` (
 
 LOCK TABLES `pbilog` WRITE;
 /*!40000 ALTER TABLE `pbilog` DISABLE KEYS */;
-INSERT INTO `pbilog` VALUES (1770,'INFO','2021-04-09 21:09:17.067','2021-04-09 21:09:16.735','(((Database connected established)))','customers','pbicustomer',NULL,'2021-04-10 01:09:17',6744),(1771,'INFO','2021-04-09 21:09:21.060','2021-04-09 21:09:16.735','Starting Program','customers','pbicustomer',NULL,'2021-04-10 01:09:21',6744),(1772,'(interval)','2021-04-09 21:09:21.061','2021-04-09 21:09:16.735','Waiting for Sql DB connection 1 of 5','customers','pbicustomer',NULL,'2021-04-10 01:09:21',6744),(1773,'(interval)','2021-04-09 21:09:27.060','2021-04-09 21:09:16.735','Checking if MySql database connection needs to be closed ...','customers','pbicustomer',NULL,'2021-04-10 01:09:27',6744),(1774,'INFO','2021-04-09 21:09:28.061','2021-04-09 21:09:16.735','Will try to get records from Firestore collection customers','customers','pbicustomer',NULL,'2021-04-10 01:09:28',6744),(1775,'DEBUG','2021-04-09 21:09:28.064','2021-04-09 21:09:16.735','lastRec is null','customers','pbicustomer',NULL,'2021-04-10 01:09:28',6744),(1776,'INFO','2021-04-09 21:09:28.454','2021-04-09 21:09:16.735','Read 3 records from Firestore','customers','pbicustomer',NULL,'2021-04-10 01:09:28',6744),(1777,'INFO','2021-04-09 21:09:28.454','2021-04-09 21:09:16.735','Data in record qdVIiNq1kok8bMZ4ugAb','customers','pbicustomer',NULL,'2021-04-10 01:09:28',6744),(1778,'INFO','2021-04-09 21:09:28.455','2021-04-09 21:09:16.735','Data in record MAXvLlTz8BhggVzqyxRI','customers','pbicustomer',NULL,'2021-04-10 01:09:28',6744),(1779,'INFO','2021-04-09 21:09:28.455','2021-04-09 21:09:16.735','Data in record AU9LgIcUSCdwRrHL5hRR','customers','pbicustomer',NULL,'2021-04-10 01:09:28',6744),(1780,'INFO','2021-04-09 21:09:28.487','2021-04-09 21:09:16.735','Successfully created a mysql record in (pbicustomer) for Firestore Id qdVIiNq1kok8bMZ4ugAb','customers','pbicustomer',NULL,'2021-04-10 01:09:28',6744),(1781,'INFO','2021-04-09 21:09:28.492','2021-04-09 21:09:16.735','Successfully created a mysql record in (pbicustomer) for Firestore Id MAXvLlTz8BhggVzqyxRI','customers','pbicustomer',NULL,'2021-04-10 01:09:28',6744),(1782,'INFO','2021-04-09 21:09:28.497','2021-04-09 21:09:16.735','Successfully created a mysql record in (pbicustomer) for Firestore Id AU9LgIcUSCdwRrHL5hRR','customers','pbicustomer',NULL,'2021-04-10 01:09:28',6744),(1783,'INFO','2021-04-09 21:09:28.505','2021-04-09 21:09:16.735','Successfully created a mysql record in (pbiss) for Firestore Id qdVIiNq1kok8bMZ4ugAb','customers','pbicustomer',NULL,'2021-04-10 01:09:28',6744),(1784,'INFO','2021-04-09 21:09:28.513','2021-04-09 21:09:16.735','Successfully created a mysql record in (pchildren) for Firestore Id MAXvLlTz8BhggVzqyxRI','customers','pbicustomer',NULL,'2021-04-10 01:09:28',6744),(1785,'INFO','2021-04-09 21:09:28.522','2021-04-09 21:09:16.735','Successfully created a mysql record in (pbiss) for Firestore Id AU9LgIcUSCdwRrHL5hRR','customers','pbicustomer',NULL,'2021-04-10 01:09:28',6744),(1786,'INFO','2021-04-09 21:09:28.527','2021-04-09 21:09:16.735','Successfully created a mysql record in (pbiss) for Firestore Id AU9LgIcUSCdwRrHL5hRR','customers','pbicustomer',NULL,'2021-04-10 01:09:28',6744),(1787,'INFO','2021-04-09 21:09:29.508','2021-04-09 21:09:16.735','Successfully created a mysql record in (pbiss) for Firestore Id MAXvLlTz8BhggVzqyxRI','customers','pbicustomer',NULL,'2021-04-10 01:09:29',6744),(1788,'INFO','2021-04-09 21:09:31.456','2021-04-09 21:09:16.735','3 / 3 records have been processed. So, ok to request next batch','customers','pbicustomer',NULL,'2021-04-10 01:09:31',6744),(1789,'INFO','2021-04-09 21:09:35.062','2021-04-09 21:09:16.735','Will try to get records from Firestore collection customers','customers','pbicustomer',NULL,'2021-04-10 01:09:35',6744),(1790,'DEBUG','2021-04-09 21:09:35.063','2021-04-09 21:09:16.735','lastRec is [object Object]','customers','pbicustomer',NULL,'2021-04-10 01:09:35',6744),(1791,'INFO','2021-04-09 21:09:35.165','2021-04-09 21:09:16.735','Read 2 records from Firestore','customers','pbicustomer',NULL,'2021-04-10 01:09:35',6744),(1792,'INFO','2021-04-09 21:09:35.165','2021-04-09 21:09:16.735','Data in record lodSFQPzZaLswtzqAw2u','customers','pbicustomer',NULL,'2021-04-10 01:09:35',6744),(1793,'INFO','2021-04-09 21:09:35.166','2021-04-09 21:09:16.735','Data in record aftdMiIQJvXPETX7xjJZ','customers','pbicustomer',NULL,'2021-04-10 01:09:35',6744),(1794,'INFO','2021-04-09 21:09:35.183','2021-04-09 21:09:16.735','Successfully created a mysql record in (pbicustomer) for Firestore Id lodSFQPzZaLswtzqAw2u','customers','pbicustomer',NULL,'2021-04-10 01:09:35',6744),(1795,'INFO','2021-04-09 21:09:35.195','2021-04-09 21:09:16.735','Successfully created a mysql record in (pbicustomer) for Firestore Id aftdMiIQJvXPETX7xjJZ','customers','pbicustomer',NULL,'2021-04-10 01:09:35',6744),(1796,'INFO','2021-04-09 21:09:35.207','2021-04-09 21:09:16.735','Successfully created a mysql record in (pchildren) for Firestore Id lodSFQPzZaLswtzqAw2u','customers','pbicustomer',NULL,'2021-04-10 01:09:35',6744),(1797,'INFO','2021-04-09 21:09:35.215','2021-04-09 21:09:16.735','Successfully created a mysql record in (pchildren) for Firestore Id lodSFQPzZaLswtzqAw2u','customers','pbicustomer',NULL,'2021-04-10 01:09:35',6744),(1798,'INFO','2021-04-09 21:09:35.223','2021-04-09 21:09:16.735','Successfully created a mysql record in (pbiss) for Firestore Id aftdMiIQJvXPETX7xjJZ','customers','pbicustomer',NULL,'2021-04-10 01:09:35',6744),(1799,'INFO','2021-04-09 21:09:36.198','2021-04-09 21:09:16.735','Successfully created a mysql record in (pbiss) for Firestore Id lodSFQPzZaLswtzqAw2u','customers','pbicustomer',NULL,'2021-04-10 01:09:36',6744),(1800,'INFO','2021-04-09 21:09:36.205','2021-04-09 21:09:16.735','Successfully created a mysql record in (pbiss) for Firestore Id lodSFQPzZaLswtzqAw2u','customers','pbicustomer',NULL,'2021-04-10 01:09:36',6744),(1801,'(interval)','2021-04-09 21:09:37.060','2021-04-09 21:09:16.735','Checking if MySql database connection needs to be closed ...','customers','pbicustomer',NULL,'2021-04-10 01:09:37',6744),(1802,'INFO','2021-04-09 21:09:38.168','2021-04-09 21:09:16.735','2 / 2 records have been processed. So, ok to request next batch','customers','pbicustomer',NULL,'2021-04-10 01:09:38',6744),(1803,'INFO','2021-04-09 21:09:42.063','2021-04-09 21:09:16.735','Will try to get records from Firestore collection customers','customers','pbicustomer',NULL,'2021-04-10 01:09:42',6744),(1804,'DEBUG','2021-04-09 21:09:42.064','2021-04-09 21:09:16.735','lastRec is [object Object]','customers','pbicustomer',NULL,'2021-04-10 01:09:42',6744),(1805,'INFO','2021-04-09 21:09:42.217','2021-04-09 21:09:16.735','Read 0 records from Firestore','customers','pbicustomer',NULL,'2021-04-10 01:09:42',6744),(1806,'(interval)','2021-04-09 21:09:47.062','2021-04-09 21:09:16.735','Checking if MySql database connection needs to be closed ...','customers','pbicustomer',NULL,'2021-04-10 01:09:47',6744),(1807,'INFO','2021-04-09 21:09:49.062','2021-04-09 21:09:16.735','No more records in Firestore collection customers','customers','pbicustomer',NULL,'2021-04-10 01:09:49',6744),(1808,'INFO','2021-04-09 21:09:49.063','2021-04-09 21:09:16.735','DONE','customers','pbicustomer',NULL,'2021-04-10 01:09:49',6744),(1809,'(interval)','2021-04-09 21:09:57.062','2021-04-09 21:09:16.735','Checking if MySql database connection needs to be closed ...','customers','pbicustomer',NULL,'2021-04-10 01:09:57',6744),(1810,'INFO','2021-04-09 21:09:57.063','2021-04-09 21:09:16.735',' Total Records Read from customers : 5',NULL,NULL,'SUMMARY','2021-04-10 01:09:57',6744),(1811,'INFO','2021-04-09 21:09:57.075','2021-04-09 21:09:16.735',' Total Records Written to pbicustomer : 5',NULL,NULL,'SUMMARY','2021-04-10 01:09:57',6744),(1812,'INFO','2021-04-09 21:09:57.082','2021-04-09 21:09:16.735',' Total Records Written to pchildren : 3',NULL,NULL,'SUMMARY','2021-04-10 01:09:57',6744),(1813,'INFO','2021-04-09 21:09:57.089','2021-04-09 21:09:16.735',' Total Records Written to pbiss : 7',NULL,NULL,'SUMMARY','2021-04-10 01:09:57',6744),(1814,'INFO','2021-04-09 21:09:57.095','2021-04-09 21:09:16.735','Database connected closed','customers','pbicustomer',NULL,'2021-04-10 01:09:57',6744),(1815,'INFO','2021-04-09 21:09:57.096','2021-04-09 21:09:16.735','PROGRAM ENDING NOW','customers','pbicustomer',NULL,'2021-04-10 01:09:57',6744);
 /*!40000 ALTER TABLE `pbilog` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -268,17 +237,21 @@ DROP TABLE IF EXISTS `pbiss`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `pbiss` (
   `Id` int NOT NULL AUTO_INCREMENT,
-  `Date` bigint DEFAULT '0',
-  `Strength` varchar(64) DEFAULT NULL,
+  `CreatedAt` datetime DEFAULT NULL,
+  `Strength` varchar(64) NOT NULL DEFAULT '0',
   `Stressor` varchar(64) DEFAULT NULL,
   `Status` varchar(20) DEFAULT NULL,
   `RecStatus` varchar(20) DEFAULT NULL,
-  `CustomerId` varchar(60) DEFAULT NULL,
+  `FirestoreId` varchar(60) DEFAULT NULL,
+  `CustomerFirestoreId` varchar(60) DEFAULT NULL,
   `CreatedAtTimeStamp` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  `BatchTime` date DEFAULT NULL,
+  `BatchTime` datetime DEFAULT NULL,
   `NumTimesTouchedByFirestore` int DEFAULT '1',
+  `Uid` varchar(45) DEFAULT NULL,
+  `UidEmail` varchar(45) DEFAULT NULL,
+  `ModifiedDate` datetime DEFAULT NULL,
   PRIMARY KEY (`Id`)
-) ENGINE=InnoDB AUTO_INCREMENT=236 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=237 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -287,8 +260,74 @@ CREATE TABLE `pbiss` (
 
 LOCK TABLES `pbiss` WRITE;
 /*!40000 ALTER TABLE `pbiss` DISABLE KEYS */;
-INSERT INTO `pbiss` VALUES (229,1617139272729,'9','9',NULL,NULL,'qdVIiNq1kok8bMZ4ugAb','2021-04-10 01:09:28','2021-04-09',1),(230,1617162276980,'1','2',NULL,NULL,'AU9LgIcUSCdwRrHL5hRR','2021-04-10 01:09:28','2021-04-09',1),(231,1617162357421,'2','2',NULL,NULL,'AU9LgIcUSCdwRrHL5hRR','2021-04-10 01:09:28','2021-04-09',1),(232,1617156647921,'1','1',NULL,NULL,'MAXvLlTz8BhggVzqyxRI','2021-04-10 01:09:29','2021-04-09',1),(233,1617220544152,'2','2',NULL,NULL,'aftdMiIQJvXPETX7xjJZ','2021-04-10 01:09:35','2021-04-09',1),(234,1617212304238,'1','1',NULL,NULL,'lodSFQPzZaLswtzqAw2u','2021-04-10 01:09:36','2021-04-09',1),(235,1617212345359,'2','2',NULL,NULL,'lodSFQPzZaLswtzqAw2u','2021-04-10 01:09:36','2021-04-09',1);
 /*!40000 ALTER TABLE `pbiss` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `pbiuser`
+--
+
+DROP TABLE IF EXISTS `pbiuser`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `pbiuser` (
+  `Id` int NOT NULL AUTO_INCREMENT,
+  `CreatedAt` datetime DEFAULT NULL,
+  `Role` varchar(64) DEFAULT NULL,
+  `RecStatus` varchar(20) DEFAULT NULL,
+  `FirestoreId` varchar(60) DEFAULT NULL,
+  `CreatedAtTimeStamp` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `BatchTime` bigint DEFAULT NULL,
+  `NumTimesTouchedByFirestore` int DEFAULT '1',
+  `ModifiedDate` datetime DEFAULT NULL,
+  PRIMARY KEY (`Id`)
+) ENGINE=InnoDB AUTO_INCREMENT=261 DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `pbiuser`
+--
+
+LOCK TABLES `pbiuser` WRITE;
+/*!40000 ALTER TABLE `pbiuser` DISABLE KEYS */;
+INSERT INTO `pbiuser` VALUES (258,'2021-03-27 00:00:00','navigator','Live','BryybVXvhcS25cZ0BRxLbm5yEBz1','2021-04-10 17:09:32',1618076618437,8,'2021-04-10 13:43:50'),(259,'2021-03-27 00:00:00','navigator','Live','PlNGcgU6a1fKTT6vviJcPXgpcKn1','2021-04-10 17:09:32',1618076618437,8,'2021-04-10 13:43:50'),(260,'2021-03-27 00:00:00','admin','Live','dfs5yVxFhrOyCJu5SIQD7QWHjur2','2021-04-10 17:09:32',1618076618437,8,'2021-04-10 13:43:50');
+/*!40000 ALTER TABLE `pbiuser` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `proparent`
+--
+
+DROP TABLE IF EXISTS `proparent`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `proparent` (
+  `Id` int NOT NULL AUTO_INCREMENT,
+  `BatchTime` bigint DEFAULT NULL,
+  `Name` char(50) NOT NULL DEFAULT '',
+  `City` char(50) NOT NULL DEFAULT '',
+  `Hash` char(64) DEFAULT NULL,
+  `Modified` datetime DEFAULT NULL,
+  `Status` int NOT NULL DEFAULT '1',
+  `ProcareId` varchar(50) NOT NULL,
+  `FirestoreProcessDate` datetime DEFAULT NULL,
+  `FirestoreProcessCounter` int DEFAULT '0',
+  `FirestoreId` varchar(60) DEFAULT NULL,
+  `Created` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `RefreshDate` datetime DEFAULT NULL,
+  PRIMARY KEY (`Id`),
+  UNIQUE KEY `ProcareId_UNIQUE` (`ProcareId`)
+) ENGINE=InnoDB AUTO_INCREMENT=194 DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `proparent`
+--
+
+LOCK TABLES `proparent` WRITE;
+/*!40000 ALTER TABLE `proparent` DISABLE KEYS */;
+INSERT INTO `proparent` VALUES (184,1618090545323,'15-Name','15-city',NULL,NULL,99,'15','2021-04-10 17:36:06',1,'t65CGLhiStqYv1nPEqHO','2021-04-10 21:35:49',NULL),(185,1618090545323,'16 Name','16 city',NULL,NULL,99,'16','2021-04-10 17:36:06',1,'ZSaAR1oSrWlQg5soat8E','2021-04-10 21:35:49',NULL),(186,1618090716142,'100-name','100-city',NULL,NULL,99,'100','2021-04-10 17:38:57',1,'FxXFPCeAUZU87sFR1hkI','2021-04-10 21:38:40',NULL),(187,1618150374924,'101-name','101-city',NULL,NULL,99,'101','2021-04-11 10:13:05',1,'2YCEWeOjxYNr2WPbQeyL','2021-04-11 14:12:59',NULL),(188,1618150915984,'102-name','102-city',NULL,NULL,99,'102','2021-04-11 10:22:06',1,'rcbfd35PgB1K7DZM7JcD','2021-04-11 14:22:00',NULL),(189,1618152363487,'103-name','103-city',NULL,NULL,99,'103','2021-04-11 10:46:13',1,'8kA6Bje93sTRJaFGtdI6','2021-04-11 14:46:07',NULL),(190,1618152363487,'104-name','104-city',NULL,NULL,99,'104','2021-04-11 10:46:13',1,'MslbMLqpBbBjvN7MnGr3','2021-04-11 14:46:07',NULL),(191,1618156666348,'105-name','105-cityY',NULL,'2021-04-11 11:57:51',99,'105','2021-04-11 11:57:56',3,'B6wHswAyRe9aCMVwQPdb','2021-04-11 14:52:27',NULL),(192,1618152958528,'106-nameY','106-city',NULL,'2021-04-11 10:56:03',99,'106','2021-04-11 10:56:08',3,'NzzUM6JNLTVCgNa7H9bE','2021-04-11 14:52:27',NULL),(193,1618156666348,'107-name','107-city',NULL,NULL,99,'107','2021-04-11 11:57:56',1,'lwbnx0K5Qp0J2hg02Tqi','2021-04-11 15:57:50',NULL);
+/*!40000 ALTER TABLE `proparent` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -300,4 +339,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2021-04-09 21:15:21
+-- Dump completed on 2021-04-11 13:57:45

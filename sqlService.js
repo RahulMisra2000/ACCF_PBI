@@ -19,21 +19,12 @@ const CUDfirestoreRecIntoMySQL = (tblName, firestoreRec) => {
 
         try {
             await readRecByFirestoreId(tblName, firestoreRec.id);
-            try {
-                await mod.updateRec(tblName, firestoreRec, true);         
-                resolve();
-            }
-            catch (e){    
-                reject();            
-            }
+            await mod.updateRec(tblName, firestoreRec, true);
         } catch (e) {
-            try {
-                await mod.createRec(tblName, firestoreRec);                
-                resolve();
-            } catch (e) {
-                reject();
-            }            
-        }                
+            await mod.createRec(tblName, firestoreRec);                
+        }  finally {
+            resolve();
+        }             
     });
 };
 
