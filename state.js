@@ -19,6 +19,10 @@ const state = {
     totalChildrenWrittenInMySql: 0,
     totalSSWrittenInMySql: 0,
 
+    totalCustomersUpdatedInMySql: 0,
+    totalChildrenUpdatedInMySql: 0,
+    totalSSUpdatedInMySql: 0,
+
     totalUsersWrittenInMySql: 0,
 
 };

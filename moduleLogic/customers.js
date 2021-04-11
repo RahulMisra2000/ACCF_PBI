@@ -68,11 +68,12 @@ const _createChildrenTable = (firestoreRec) => {
         
 
         firestoreRec.children.forEach((v, i, a) => {
-            const rec = {
+            const rec = {                
                 Age: +v.age,
                 Grade: v.grade,
                 Name: v.name,
                 School: v.school,
+                FirestoreId: v.Id,
                 CustomerFirestoreId: firestoreRec.id,
                 BatchTime: new Date(state.batchTime),
                 Uid : firestoreRec.uid,
@@ -122,6 +123,7 @@ const _createPbisTable = (firestoreRec) => {
                 CreatedAt: new Date(v.date),
                 Strength: v.strength,
                 Stressor: v.stressor,                
+                FirestoreId: v.Id,
                 CustomerFirestoreId: firestoreRec.id,
                 BatchTime: new Date(state.batchTime),
                 Uid : firestoreRec.uid,
@@ -184,7 +186,7 @@ const _updateChildrenTable = (firestoreRec) => {
                     RecStatus = ?,
                     ModifiedDate = ?,
                     NumTimesTouchedByFirestore = NumTimesTouchedByFirestore + 1
-                WHERE FirestoreId = ?`, 
+                WHERE FirestoreId = ? AND CustomerFirestoreId = ?`, 
                     [
                     +v.age,
                     v.grade,
@@ -197,7 +199,8 @@ const _updateChildrenTable = (firestoreRec) => {
                     firestoreRec.status,
                     firestoreRec.recStatus,
                     new Date(),
-                    
+                
+                    v.Id,
                     firestoreRec.id
                  ], 
                 (err, res) => {
@@ -206,7 +209,7 @@ const _updateChildrenTable = (firestoreRec) => {
                         rowsInError++;
                     } else {
                         utilities.showMessage({type: 'INFO', msg: `Successfully update a mysql record in (pchildren) for Firestore Id ${firestoreRec.id}`});  
-                        state.totalChildrenWrittenInMySql++; 
+                        state.totalChildrenUpdatedInMySql++; 
                     }
                     rowsProcessed++;                      
                 });
@@ -222,11 +225,6 @@ const _updatePbisTable = (firestoreRec) => {
         let rowsProcessed = 0;
         let rowsInError = 0;
         let rowsToProcess = firestoreRec.ss.length;
-
-        
-        if (!firestoreRec.ss.length) {
-            return Promise.resolve()
-        }
 
         // Helper
         const _interval = setInterval(() => {
@@ -255,7 +253,7 @@ const _updatePbisTable = (firestoreRec) => {
                     RecStatus = ?,
                     ModifiedDate = ?,
                     NumTimesTouchedByFirestore = NumTimesTouchedByFirestore + 1
-                WHERE FirestoreId = ?`, 
+                WHERE FirestoreId = ? AND CustomerFirestoreId = ?`, 
                     [
                     new Date(v.createdAt),
                     v.strength,
@@ -268,6 +266,7 @@ const _updatePbisTable = (firestoreRec) => {
                     firestoreRec.recStatus,
                     new Date(),
                     
+                    v.Id,
                     firestoreRec.id
                  ], 
                 (err, res) => {
@@ -275,8 +274,8 @@ const _updatePbisTable = (firestoreRec) => {
                         utilities.showMessage({type: 'ERROR', msg: `Updating rec in pbichildren while processing firestore rec id: ${firestoreRec.id}`, obj:err, other: err.message});                 
                         rowsInError++;
                     } else {
-                        utilities.showMessage({type: 'INFO', msg: `Successfully update a mysql record in (pchildren) for Firestore Id ${firestoreRec.id}`});  
-                        state.totalChildrenWrittenInMySql++; 
+                        utilities.showMessage({type: 'INFO', msg: `Successfully update a mysql record in (pbichildren) for Firestore Id ${firestoreRec.id}`});  
+                        state.totalSSUpdatedInMySql++; 
                     }
                     rowsProcessed++;                      
                 });
@@ -332,7 +331,8 @@ const updateRec = (tblName, firestoreRec) => {
                     reject();
                 } else {
                     utilities.showMessage({type: 'INFO', msg: `Successfully updated a mysql record for Firestore Id ${firestoreRec['id']}`});
-                    
+                    state.totalCustomersUpdatedInMySql++;
+
                     await _updateChildrenTable(firestoreRec);           // UPDATE pbichildren table
                     await _updatePbisTable(firestoreRec);               // UPDATE pbiss table
                     resolve();
@@ -348,8 +348,12 @@ const writeSummary = async () => {
     try {        
         await LogService.createLogRec({type:'INFO', msg: ` Total Records Read from ${state.firestoreCollectionName} : ${state.totalRecsReadFromFirestore}`, other: 'SUMMARY'});    
         await LogService.createLogRec({type:'INFO', msg: ` Total Records Written to ${state.sqlTableName} : ${state.totalCustomersWrittenInMySql}`, other: 'SUMMARY'});    
-        await LogService.createLogRec({type:'INFO', msg: ` Total Records Written to pchildren : ${state.totalChildrenWrittenInMySql}`, other: 'SUMMARY'});    
+        await LogService.createLogRec({type:'INFO', msg: ` Total Records Written to pbichildren : ${state.totalChildrenWrittenInMySql}`, other: 'SUMMARY'});    
         await LogService.createLogRec({type:'INFO', msg: ` Total Records Written to pbiss : ${state.totalSSWrittenInMySql}`, other: 'SUMMARY'});    
+
+        await LogService.createLogRec({type:'INFO', msg: ` Total Records Updated in ${state.sqlTableName} : ${state.totalCustomersUpdatedInMySql}`, other: 'SUMMARY'});    
+        await LogService.createLogRec({type:'INFO', msg: ` Total Records Updated in pbichildren : ${state.totalChildrenUpdatedInMySql}`, other: 'SUMMARY'});    
+        await LogService.createLogRec({type:'INFO', msg: ` Total Records Updated in pbiss : ${state.totalSSUpdatedInMySql}`, other: 'SUMMARY'});    
     } finally {
         return Promise.resolve();
     }
