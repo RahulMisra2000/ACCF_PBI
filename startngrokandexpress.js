@@ -14,12 +14,13 @@ import utilities from './utilities.js';
 import downloadPBIData from './DownloadPBIdata.js';
 import { SIGTERM } from 'constants';
 import state from './state.js';
-
+import ngrok from 'ngrok';
 
 //#region MODULE-LEVEL VARIABLES
 // Defined outside all functions
 let connectionMadeInterval, connectionCloseInterval;
 let downloadDataProcessingInProgress = false;
+let tunnels; 
 
 let app = express();
 let httpServer = http.createServer(app);
@@ -64,7 +65,7 @@ process.on('SIGTERM', () => {
 // Check every 6 seconds if a Sql connection was made
 const SeeIfConnectionWasMade = (startProgram) => {
   connectionMadeInterval = setInterval(() => {  
-    if (state.dbConnectionMade) {      
+    if (state.dbConnectionMade && state.ngrokTunnelStarted) {      
       clearInterval(connectionMadeInterval);      
       startProgram();
     }
@@ -86,6 +87,12 @@ const checkIfConnectionNeedsToBeClosed = () => {
       db.closeConnection();          
       utilities.showMessage({type:'INFO', msg:'PROGRAM ENDING NOW'});
       clearAllIntevals(); // because the node app won't close if there are uncleared intervals
+
+      // now shutdown ngrok tunnels and ngrok
+      (async ()=>{
+        await ngrok.disconnect();
+        await ngrok.kill();
+      })();
     }
   }, 10000);  
 };
@@ -103,6 +110,7 @@ const clearAllIntevals = () => {
 // 
 const startProgram = () => {
   utilities.showMessage({type: 'INFO', msg: `Starting ${process.argv[1]}`, other:`PID ${process.pid} - PPID ${process.ppid}`});
+  utilities.showMessage({type: 'INFO', msg: `ngrok ${tunnels.tunnels[0].public_url} ${tunnels.tunnels[1].public_url}`});
 
   app.get('/', function (req, res) {      
     return res.send(`Hi, My Process Id is ${process.pid}. Data Download in Progress (Flag): ${downloadDataProcessingInProgress}`);    
@@ -207,6 +215,16 @@ const startProgram = () => {
 */
 // It takes a while to make sql connection, so do this as the very first thing
 db.getConnection();  
+
+// get ngrok fired up
+(async () => {
+  await ngrok.connect({proto: 'http', addr: 8080, onStatusChange: async (status) => {
+    if (status == 'connected') {      
+    }
+  }});
+  tunnels = await ngrok.getApi().listTunnels();
+  state.ngrokTunnelStarted = true;
+})();
 
 SeeIfConnectionWasMade(startProgram); // setInterval
 checkIfConnectionNeedsToBeClosed();   // setInterval

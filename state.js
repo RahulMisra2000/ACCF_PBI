@@ -9,6 +9,8 @@ const state = {
     dbConnectionWaitCount: 0,
     dbConnectionWaitMaxCount: 5,
 
+    ngrokTunnelStarted: false,
+
     numberOfDaysBeforeTodayToGetRecordsFrom: 15,
     lastRec: null,
 
